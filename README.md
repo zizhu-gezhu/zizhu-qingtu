@@ -4,20 +4,9 @@
 
 帮助自媒体工作人员和开发人员提升工作效率。
 
-[English](README.en-US.md) · [下载桌面版](https://github.com/zizhu-gezhu/zizhu-qingtu/releases) · [问题反馈](https://github.com/zizhu-gezhu/zizhu-qingtu/issues)
+[English](README.en-US.md) · [问题反馈](https://github.com/zizhu-gezhu/zizhu-qingtu/issues)
 
 ![紫竹轻图工作台](public/og.png)
-
-## 来源与许可
-
-本作品**基于 [PicLite](https://github.com/amiaoapp/PicLite) 修改**。
-
-- 原作者：APP喵（GitHub: [amiaoapp](https://github.com/amiaoapp)）
-- 修改内容：改名换标（产品名、图标、界面文案）、移除原作者赞助与社交信息、补齐开源声明
-- 修改日期：2026-10-08
-- 许可证：**GPL-3.0-or-later**（详见 [LICENSE](LICENSE)）
-
-本项目遵循 GPL-3.0 开源：任何人可自由使用、修改、分发，需保留原作者署名并以相同许可发布。详见 [NOTICE.md](NOTICE.md)。
 
 ## 主要能力
 
@@ -57,17 +46,7 @@
 
 JFIF 按 JPEG 图片支持导入、压缩、转换、监控与重命名；本版本不直接拆包或重打包 EPUB，请先提取其中图片。
 
-## 下载
-
-在 [Releases](https://github.com/zizhu-gezhu/zizhu-qingtu/releases) 下载：
-
-- Windows x64 / ARM64：`.exe`、`.msi` 或便携版 `.zip`
-- macOS Apple Silicon / Intel：`.dmg`
-- Linux x64 / ARM64：`.AppImage` 或 `.deb`
-
-macOS 构建目前为 ad-hoc 签名，首次运行可能需要在“系统设置 → 隐私与安全性”中允许打开。
-
-## Web 与 Docker
+## Docker
 
 Web 端是无需安装的静态版本，图片直接在浏览器本地处理，不会上传到服务器。系统托盘、全局快捷键、剪贴板持续监听和文件夹监测等系统级功能请使用桌面端。
 
@@ -195,4 +174,4 @@ npm run desktop:build
 
 图片压缩默认在浏览器或桌面客户端本地完成；只有主动使用图床上传时，文件才会发送到你配置的服务。
 
-紫竹轻图基于 [PicLite](https://github.com/amiaoapp/PicLite)（作者 APP喵）修改，使用 [GPL-3.0-or-later](LICENSE) 许可。桌面自动化工作流借鉴并改编自 GPL 项目 [FuzzyIdeas/Clop](https://github.com/FuzzyIdeas/Clop)，本项目不使用 Clop 商标；详情见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 与 [NOTICE.md](NOTICE.md)。
+紫竹轻图基于 [PicLite](https://github.com/amiaoapp/PicLite)修改，使用 [GPL-3.0-or-later](LICENSE) 许可。桌面自动化工作流借鉴并改编自 GPL 项目 [FuzzyIdeas/Clop](https://github.com/FuzzyIdeas/Clop)，本项目不使用 Clop 商标；详情见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 与 [NOTICE.md](NOTICE.md)。
