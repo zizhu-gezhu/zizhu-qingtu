@@ -2,20 +2,11 @@
 
 A local-first image optimiser for content creators and developers, available on Windows, macOS, Linux, and as a self-hosted web app.
 
-[中文](README.md) · [Desktop downloads](https://github.com/zizhu-gezhu/zizhu-qingtu/releases) · [Issues](https://github.com/zizhu-gezhu/zizhu-qingtu/issues)
+[中文](README.md) · [Issues](https://github.com/zizhu-gezhu/zizhu-qingtu/issues)
 
-![ZizhuQingTu workspace](public/og.png)
+![ZizhuQingTu workbench](docs/images/demo-1.png)
 
-## Origin and licence
-
-This work is **based on [PicLite](https://github.com/amiaoapp/PicLite)**.
-
-- Original author: APP喵 (GitHub: [amiaoapp](https://github.com/amiaoapp))
-- Changes: rebranding (product name, icons, UI copy), removal of the original author's sponsorship and social links, added open-source notices
-- Modified: 2026-10-08
-- Licence: **GPL-3.0-or-later** (see [LICENSE](LICENSE))
-
-Released under GPL-3.0: anyone may use, modify and redistribute it, provided the original author is credited and derivatives are released under the same licence. See [NOTICE.md](NOTICE.md).
+![ZizhuQingTu · before/after comparison](docs/images/demo-2.png)
 
 ## Highlights
 
@@ -48,16 +39,6 @@ The desktop app can open its floating window from a global shortcut, copied imag
 ### Multi-task folder monitoring
 
 Add and save tasks directly on the Folder Monitor page. Independent folders such as A, B, and C can run at the same time, each with its own format, quality, scale, dimensions, output location, naming rule, completion notification, and floating-result preference. Tasks take effect immediately and are restored after restart; ZizhuQingTu must remain running, though it can be minimised to the tray.
-
-## Download
-
-Get the latest installers from [GitHub Releases](https://github.com/zizhu-gezhu/zizhu-qingtu/releases):
-
-- Windows x64 / ARM64: `.exe`, `.msi`, or portable `.zip`
-- macOS Apple Silicon / Intel: `.dmg`
-- Linux x64 / ARM64: `.AppImage` or `.deb`
-
-The current macOS builds use ad-hoc signing. On first launch, macOS may require approval in System Settings → Privacy & Security.
 
 ## Web and Docker
 
@@ -185,7 +166,7 @@ See the full [plugin development guide](docs/PLUGIN_DEVELOPMENT.en-US.md) for th
 
 Optimisation runs locally in the browser or desktop app. Files leave your device only when you explicitly upload them to a storage provider you configured.
 
-ZizhuQingTu is based on [PicLite](https://github.com/amiaoapp/PicLite) by APP喵 and is licensed under [GPL-3.0-or-later](LICENSE). Its desktop automation workflow is inspired by and adapted from the GPL-licensed [FuzzyIdeas/Clop](https://github.com/FuzzyIdeas/Clop) project. ZizhuQingTu does not use the Clop trademark. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [NOTICE.md](NOTICE.md).
+ZizhuQingTu is based on [PicLite](https://github.com/amiaoapp/PicLite) and is licensed under [GPL-3.0-or-later](LICENSE). Its desktop automation workflow is inspired by and adapted from the GPL-licensed [FuzzyIdeas/Clop](https://github.com/FuzzyIdeas/Clop) project. ZizhuQingTu does not use the Clop trademark. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [NOTICE.md](NOTICE.md).
 
 ### Portable mode
 
