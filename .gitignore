@@ -46,3 +46,6 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# 本地品牌源文件（logo / 演示图原图，不提交）
+/*.png
