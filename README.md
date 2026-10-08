@@ -1,11 +1,23 @@
-# PicLite 图轻
+# 紫竹轻图（ZizhuQingTu）
 
-PicLite 图轻：开源跨平台本地图片动图压缩工具，智能择优压缩，本地文件夹监控，强大自定义悬浮窗。自动图片格式转换，批量压缩，添加水印，上传图床。支持 Windows、macOS、Linux 与可自托管 Web 端。
-帮助自媒体工作人员和开发人员提升工作效率
+开源跨平台本地图片 / 动图压缩工具：智能择优压缩，本地文件夹监控，自定义悬浮窗；支持格式转换、批量压缩、添加水印、图床上传。支持 Windows、macOS、Linux 与可自托管 Web 端。
 
-[English](README.en-US.md) · [下载桌面版](https://github.com/amiaoapp/PicLite/releases) · [Web 演示](https://amiaoapp.github.io/PicLite/) · [插件开发](docs/PLUGIN_DEVELOPMENT.md) · [问题反馈](https://github.com/amiaoapp/PicLite/issues)
+帮助自媒体工作人员和开发人员提升工作效率。
 
-![PicLite 工作台](public/og.png)
+[English](README.en-US.md) · [下载桌面版](https://github.com/zizhu-gezhu/zizhu-qingtu/releases) · [问题反馈](https://github.com/zizhu-gezhu/zizhu-qingtu/issues)
+
+![紫竹轻图工作台](public/og.png)
+
+## 来源与许可
+
+本作品**基于 [PicLite](https://github.com/amiaoapp/PicLite) 修改**。
+
+- 原作者：APP喵（GitHub: [amiaoapp](https://github.com/amiaoapp)）
+- 修改内容：改名换标（产品名、图标、界面文案）、移除原作者赞助与社交信息、补齐开源声明
+- 修改日期：2026-10-08
+- 许可证：**GPL-3.0-or-later**（详见 [LICENSE](LICENSE)）
+
+本项目遵循 GPL-3.0 开源：任何人可自由使用、修改、分发，需保留原作者署名并以相同许可发布。详见 [NOTICE.md](NOTICE.md)。
 
 ## 主要能力
 
@@ -45,14 +57,9 @@ PicLite 图轻：开源跨平台本地图片动图压缩工具，智能择优压
 
 JFIF 按 JPEG 图片支持导入、压缩、转换、监控与重命名；本版本不直接拆包或重打包 EPUB，请先提取其中图片。
 
-## 截图
-
-<img width="2924" height="1602" alt="image" src="https://github.com/user-attachments/assets/2379e6d7-e1ef-444d-890f-e2ea7942abe9" />
-
-
 ## 下载
 
-在 [Releases](https://github.com/amiaoapp/PicLite/releases) 下载：
+在 [Releases](https://github.com/zizhu-gezhu/zizhu-qingtu/releases) 下载：
 
 - Windows x64 / ARM64：`.exe`、`.msi` 或便携版 `.zip`
 - macOS Apple Silicon / Intel：`.dmg`
@@ -62,15 +69,15 @@ macOS 构建目前为 ad-hoc 签名，首次运行可能需要在“系统设置
 
 ## Web 与 Docker
 
-[GitHub Pages 在线 Demo](https://amiaoapp.github.io/PicLite/) 是无需安装的静态版本，图片直接在浏览器本地处理，不会上传到服务器。系统托盘、全局快捷键、剪贴板持续监听和文件夹监测等系统级功能请使用桌面端。
+Web 端是无需安装的静态版本，图片直接在浏览器本地处理，不会上传到服务器。系统托盘、全局快捷键、剪贴板持续监听和文件夹监测等系统级功能请使用桌面端。
 
-需要局域网访问、固定域名或自己的服务入口时，可使用 GHCR 镜像部署 Docker 版本。默认服务端口为 `3456`。
+需要局域网访问、固定域名或自己的服务入口时，可使用镜像部署 Docker 版本。默认服务端口为 `3456`。
 
 ### Docker Compose（推荐）
 
 ```bash
-git clone https://github.com/amiaoapp/PicLite.git
-cd PicLite
+git clone https://github.com/zizhu-gezhu/zizhu-qingtu.git
+cd zizhu-qingtu
 docker compose pull
 docker compose up -d
 ```
@@ -81,15 +88,15 @@ docker compose up -d
 docker compose pull
 docker compose up -d --remove-orphans
 docker compose ps
-docker compose logs -f piclite
+docker compose logs -f zizhu-qingtu
 ```
 
 可在项目目录创建 `.env` 修改监听地址、宿主机端口或版本：
 
 ```dotenv
-PICLITE_BIND=0.0.0.0
-PICLITE_PORT=3456
-PICLITE_TAG=1.8.9
+ZIZHU_QINGTU_BIND=0.0.0.0
+ZIZHU_QINGTU_PORT=3456
+ZIZHU_QINGTU_TAG=1.0.0
 ```
 
 如需从当前源码本地构建：
@@ -102,18 +109,18 @@ docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
 
 ```bash
 docker run -d \
-  --name piclite \
+  --name zizhu-qingtu \
   -p 3456:3456 \
   --restart unless-stopped \
-  ghcr.io/amiaoapp/piclite:latest
+  ghcr.io/zizhu-gezhu/zizhu-qingtu:latest
 ```
 
-浏览器打开 `http://服务器IP:3456`。GitHub Pages 与 Docker Web 端都保留压缩工作台；受浏览器权限限制，不提供系统托盘、全局快捷键和持续文件夹监测。
+浏览器打开 `http://服务器IP:3456`。Web 端保留压缩工作台；受浏览器权限限制，不提供系统托盘、全局快捷键和持续文件夹监测。
 
 反向代理时将域名转发至 `http://127.0.0.1:3456`。例如 Caddy：
 
 ```caddyfile
-piclite.example.com {
+zizhu-qingtu.example.com {
   reverse_proxy 127.0.0.1:3456
 }
 ```
@@ -121,6 +128,11 @@ piclite.example.com {
 ## 本地开发
 
 要求 Node.js 22.13+、Rust stable，以及目标平台的 Tauri 2 系统依赖。
+
+> Windows 额外要求：
+> 1. **MSVC 生成工具**（勾选“使用 C++ 的桌面开发”）与 **Rust**（`rustup`）；
+> 2. **Strawberry Perl** —— `ssh2` 依赖 `vendored-openssl`，需要 perl 编译 OpenSSL，而 Git 自带的精简版 perl 缺模块；
+> 3. ⚠️ **项目路径必须为纯英文**。中文路径会让 OpenSSL 的 perl/nmake 把文件写进乱码目录，导致构建失败。
 
 ```bash
 npm install
@@ -149,7 +161,7 @@ npm run desktop:build
 
 执行前先扫描预览；未匹配和冲突项会标明，不覆盖已有文件。修改后的正则、模板、连接符与转换设置可以另存为自定义规则或覆盖已有自定义规则，软件也会自动恢复上次使用的规则。
 
-PicLite 插件不再用 `iframe` 嵌入。桌面端会读取 HTML/CSS/JavaScript，并挂载到工作台的可信插件容器；因此不会被站点的 `X-Frame-Options` 阻止，也支持自定义标签名称。请只安装你信任的代码。
+插件不再用 `iframe` 嵌入。桌面端会读取 HTML/CSS/JavaScript，并挂载到工作台的可信插件容器；因此不会被站点的 `X-Frame-Options` 阻止，也支持自定义标签名称。请只安装你信任的代码。
 
 最小插件只需一个 HTML 文件：
 
@@ -183,4 +195,4 @@ PicLite 插件不再用 `iframe` 嵌入。桌面端会读取 HTML/CSS/JavaScript
 
 图片压缩默认在浏览器或桌面客户端本地完成；只有主动使用图床上传时，文件才会发送到你配置的服务。
 
-PicLite 使用 [GPL-3.0-or-later](LICENSE)。桌面自动化工作流借鉴并改编自 GPL 项目 [FuzzyIdeas/Clop](https://github.com/FuzzyIdeas/Clop)，PicLite 不使用 Clop 商标；详情见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+紫竹轻图基于 [PicLite](https://github.com/amiaoapp/PicLite)（作者 APP喵）修改，使用 [GPL-3.0-or-later](LICENSE) 许可。桌面自动化工作流借鉴并改编自 GPL 项目 [FuzzyIdeas/Clop](https://github.com/FuzzyIdeas/Clop)，本项目不使用 Clop 商标；详情见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 与 [NOTICE.md](NOTICE.md)。

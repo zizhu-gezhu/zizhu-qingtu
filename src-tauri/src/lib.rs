@@ -47,7 +47,7 @@ use tauri::{
     AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, State, Theme, WebviewUrl,
     WebviewWindowBuilder, WindowEvent,
 };
-use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_notification::NotificationExt;
 use url::Url;
@@ -589,7 +589,7 @@ fn collect_image_paths(root: &Path) -> Vec<PathBuf> {
 
 fn collect_initial_watch_paths(source_root: &Path, rule: &WatcherSettings) -> Vec<PathBuf> {
     let generated_root = if rule.output_folder.is_empty() {
-        Some(source_root.join("PicLite"))
+        Some(source_root.join("紫竹轻图"))
     } else if rule.output_folder == "@same-folder" {
         None
     } else {
@@ -743,7 +743,7 @@ fn watched_output_name(
         ));
     }
     let suffix = if settings.output_suffix.trim().is_empty() {
-        "-piclite"
+        "-zizhuge"
     } else {
         settings.output_suffix.trim()
     };
@@ -2608,7 +2608,7 @@ fn ensure_preferences_window(app: &AppHandle) -> Result<(), String> {
         "preferences",
         WebviewUrl::App("index.html?window=preferences".into()),
     )
-    .title("PicLite 应用设置")
+    .title("紫竹轻图 应用设置")
     .inner_size(980.0, 700.0)
     .min_inner_size(680.0, 500.0)
     .resizable(true)
@@ -2648,7 +2648,7 @@ fn ensure_dropzone_window(app: &AppHandle) -> Result<bool, String> {
         "dropzone",
         WebviewUrl::App("index.html?window=dropzone".into()),
     )
-    .title("PicLite Results")
+    .title("紫竹轻图 Results")
     .inner_size(282.0, 202.0)
     .min_inner_size(246.0, 188.0)
     .resizable(true)
@@ -2875,7 +2875,7 @@ async fn quick_compress_paths(
                     .and_then(|value| value.to_str())
                     .unwrap_or("image");
                 let suffix = if settings.export_suffix.trim().is_empty() {
-                    "-piclite"
+                    "-zizhuge"
                 } else {
                     settings.export_suffix.trim()
                 };
@@ -3390,7 +3390,7 @@ fn cleanup_marked_files(
                 format!("{contents}\n")
             },
         )
-        .map_err(|error| format!("无法更新 PicLite 清理记录：{error}"))?;
+        .map_err(|error| format!("无法更新紫竹轻图清理记录：{error}"))?;
     }
     Ok(())
 }
@@ -3413,9 +3413,9 @@ fn record_optimised_output(directory: &Path, output: &Path) -> Result<(), String
         .create(true)
         .append(true)
         .open(&manifest)
-        .map_err(|error| format!("无法记录 PicLite 输出文件：{error}"))?;
+        .map_err(|error| format!("无法记录紫竹轻图输出文件：{error}"))?;
     writeln!(file, "{}", canonical.to_string_lossy())
-        .map_err(|error| format!("无法记录 PicLite 输出文件：{error}"))
+        .map_err(|error| format!("无法记录紫竹轻图输出文件：{error}"))
 }
 
 #[tauri::command]
@@ -3633,7 +3633,7 @@ fn process_watched_file(
                 .map(Path::to_path_buf)
                 .ok_or_else(|| "无法定位源文件夹".to_string())?
         } else if settings.output_folder.is_empty() {
-            PathBuf::from(&settings.input_folder).join("PicLite")
+            PathBuf::from(&settings.input_folder).join("紫竹轻图")
         } else {
             PathBuf::from(&settings.output_folder)
         };
@@ -3666,7 +3666,7 @@ fn process_watched_file(
                 let _ = app
                     .notification()
                     .builder()
-                    .title("PicLite · 图片处理完成")
+                    .title("紫竹轻图 · 图片处理完成")
                     .body(format!(
                         "{} → {} · {} KB → {} KB",
                         canonical.file_name().unwrap_or_default().to_string_lossy(),
@@ -4350,7 +4350,7 @@ fn portable_directory() -> Option<PathBuf> {
     directory
         .join("portable.txt")
         .is_file()
-        .then(|| directory.join("PicLite-Data"))
+        .then(|| directory.join("紫竹轻图-Data"))
 }
 
 fn config_directory(app: &AppHandle) -> Result<PathBuf, String> {
@@ -5699,7 +5699,7 @@ fn validated_watch_rules(
         for (source, rule) in &rules {
             if rule.output_folder != "@same-folder" {
                 let output = if rule.output_folder.is_empty() {
-                    source.join("PicLite")
+                    source.join("紫竹轻图")
                 } else {
                     PathBuf::from(&rule.output_folder)
                 };
@@ -5782,7 +5782,7 @@ async fn start_watcher(
                             continue;
                         }
                         let output = if rule.output_folder.is_empty() {
-                            Some(source_root.join("PicLite"))
+                            Some(source_root.join("紫竹轻图"))
                         } else if rule.output_folder == "@same-folder" {
                             None
                         } else {
@@ -5949,9 +5949,8 @@ fn create_tray(app: &tauri::App) -> tauri::Result<()> {
     )?;
 
     let pause = MenuItem::with_id(app, "pause_automatic", "暂停自动优化", true, None::<&str>)?;
-    let check_updates = MenuItem::with_id(app, "check_updates", "检查更新", true, None::<&str>)?;
-    let about = MenuItem::with_id(app, "about", "关于 PicLite", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "完全退出 PicLite", true, None::<&str>)?;
+    let about = MenuItem::with_id(app, "about", "关于紫竹轻图", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", "完全退出紫竹轻图", true, None::<&str>)?;
     let separator_one = PredefinedMenuItem::separator(app)?;
     let separator_two = PredefinedMenuItem::separator(app)?;
     let separator_three = PredefinedMenuItem::separator(app)?;
@@ -5967,7 +5966,6 @@ fn create_tray(app: &tauri::App) -> tauri::Result<()> {
             &separator_two,
             &pause,
             &about,
-            &check_updates,
             &separator_three,
             &quit,
         ],
@@ -5977,7 +5975,7 @@ fn create_tray(app: &tauri::App) -> tauri::Result<()> {
         .unwrap_or_else(|_| app.default_window_icon().expect("missing app icon").clone());
     #[allow(unused_variables)]
     let tray = TrayIconBuilder::with_id("piclite-tray")
-        .tooltip("PicLite · Drop to optimise")
+        .tooltip("紫竹轻图 · Drop to optimise")
         .icon(initial_tray_icon)
         .menu(&menu)
         .show_menu_on_left_click(false)
@@ -5991,47 +5989,7 @@ fn create_tray(app: &tauri::App) -> tauri::Result<()> {
                 open_dropzone_from_callback(app, None);
             }
             "about" => {
-                let _ = open_url("https://github.com/amiaoapp/PicLite");
-            }
-            "check_updates" => {
-                let app = app.clone();
-                tauri::async_runtime::spawn(async move {
-                    match check_for_updates().await {
-                        Ok(info) if info.available => {
-                            let release_url = info.release_url.clone();
-                            app.dialog()
-                                .message(format!(
-                                    "发现 PicLite {}。\n\n当前版本：{}",
-                                    info.latest_version, info.current_version
-                                ))
-                                .title("PicLite 更新检查")
-                                .kind(MessageDialogKind::Info)
-                                .buttons(MessageDialogButtons::OkCancelCustom(
-                                    "打开下载页面".into(),
-                                    "稍后".into(),
-                                ))
-                                .show(move |open_release| {
-                                    if open_release {
-                                        let _ = open_url(&release_url);
-                                    }
-                                });
-                        }
-                        Ok(info) => {
-                            app.dialog()
-                                .message(format!("PicLite {} 已是最新版。", info.current_version))
-                                .title("PicLite 更新检查")
-                                .kind(MessageDialogKind::Info)
-                                .show(|_| {});
-                        }
-                        Err(error) => {
-                            app.dialog()
-                                .message(format!("检查更新失败。\n\n{error}"))
-                                .title("PicLite 更新检查")
-                                .kind(MessageDialogKind::Error)
-                                .show(|_| {});
-                        }
-                    }
-                });
+                open_preferences_from_menu(app, Some("about"));
             }
             "quit" => {
                 app.state::<DesktopState>()
@@ -6138,35 +6096,6 @@ fn version_is_newer(latest: &str, current: &str) -> bool {
         .is_some_and(|(left, right)| left > right)
 }
 
-#[tauri::command]
-async fn check_for_updates() -> Result<UpdateInfo, String> {
-    tauri::async_runtime::spawn_blocking(|| {
-        let current_version = env!("CARGO_PKG_VERSION").to_string();
-        let release = Client::builder()
-            .timeout(Duration::from_secs(10))
-            .user_agent(format!("PicLite/{current_version}"))
-            .build()
-            .map_err(|error| format!("无法创建更新检查请求：{error}"))?
-            .get("https://api.github.com/repos/amiaoapp/PicLite/releases/latest")
-            .send()
-            .and_then(|response| response.error_for_status())
-            .map_err(|error| format!("连接 GitHub 检查更新失败：{error}"))?
-            .text()
-            .map_err(|error| format!("读取 GitHub 版本信息失败：{error}"))?;
-        let release = serde_json::from_str::<GithubRelease>(&release)
-            .map_err(|error| format!("解析 GitHub 版本信息失败：{error}"))?;
-        let latest_version = release.tag_name.trim_start_matches(['v', 'V']).to_string();
-        Ok(UpdateInfo {
-            available: version_is_newer(&latest_version, &current_version),
-            current_version,
-            latest_version,
-            release_url: release.html_url,
-            published_at: release.published_at,
-        })
-    })
-    .await
-    .map_err(|error| error.to_string())?
-}
 
 #[tauri::command]
 async fn fetch_plugin_source(url: String) -> Result<String, String> {
@@ -6179,7 +6108,7 @@ async fn fetch_plugin_source(url: String) -> Result<String, String> {
         let response = Client::builder()
             .timeout(Duration::from_secs(15))
             .user_agent(format!(
-                "PicLite/{}/PluginRuntime",
+                "ZizhuQingTu/{}/PluginRuntime",
                 env!("CARGO_PKG_VERSION")
             ))
             .build()
@@ -6234,7 +6163,7 @@ fn allowed_external_url(parsed: &Url) -> bool {
     let host = parsed.host_str().unwrap_or_default();
     parsed.scheme() == "https"
         && match host {
-            "github.com" => parsed.path().starts_with("/amiaoapp/PicLite"),
+            "github.com" => parsed.path().starts_with("/zizhu-gezhu/zizhu-qingtu"),
             "appmiao.com" | "www.appmiao.com" | "space.bilibili.com" | "v.douyin.com"
             | "youtube.com" | "www.youtube.com" | "x.com" | "www.x.com" | "t.me" => true,
             _ => false,
@@ -6245,7 +6174,7 @@ fn allowed_external_url(parsed: &Url) -> bool {
 async fn open_external_url(url: String) -> Result<(), String> {
     let parsed = Url::parse(&url).map_err(|_| "链接格式无效".to_string())?;
     if !allowed_external_url(&parsed) {
-        return Err("该外部链接不在 PicLite 的允许列表中".to_string());
+        return Err("该外部链接不在紫竹轻图的允许列表中".to_string());
     }
     tauri::async_runtime::spawn_blocking(move || open_url(&url))
         .await
@@ -6424,7 +6353,7 @@ pub fn run() {
                         .unwrap_or(false);
                     apply_tray_icon_theme(app.handle(), dark);
                 }
-                Err(error) => eprintln!("PicLite system tray unavailable: {error}"),
+                Err(error) => eprintln!("ZizhuQingTu system tray unavailable: {error}"),
             }
             #[cfg(target_os = "macos")]
             app.handle()
@@ -6525,7 +6454,6 @@ pub fn run() {
             apply_batch_rename,
             update_desktop_preferences,
             set_tray_theme,
-            check_for_updates,
             fetch_plugin_source,
             open_external_url,
             show_main_window,
@@ -6545,7 +6473,7 @@ pub fn run() {
             get_watcher_state,
         ])
         .build(tauri::generate_context!())
-        .expect("error while building PicLite");
+        .expect("error while building ZizhuQingTu");
 
     app.run(|app_handle, event| match event {
         tauri::RunEvent::ExitRequested { api, .. } => {
@@ -7083,7 +7011,7 @@ mod tests {
             "https://www.youtube.com/@amiaoapp",
             "https://x.com/amiaoapp",
             "https://t.me/miaoaaaaa",
-            "https://github.com/amiaoapp/PicLite/releases",
+            "https://github.com/zizhu-gezhu/zizhu-qingtu/releases",
         ] {
             assert!(
                 allowed_external_url(&Url::parse(url).expect("valid creator URL")),
@@ -8017,7 +7945,7 @@ mod tests {
 
     #[test]
     fn batch_rename_extracts_codes_from_different_nested_folder_depths() {
-        let root = std::env::temp_dir().join(format!("PicLite 图片 - 原稿 {}", now_ms()));
+        let root = std::env::temp_dir().join(format!("紫竹轻图 图片 - 原稿 {}", now_ms()));
         let shallow = root.join("ABC").join("【1-1】");
         let deep = root
             .join("ABC")
@@ -8350,7 +8278,7 @@ mod tests {
     fn initial_watch_scan_is_recursive_and_skips_the_default_output_tree() {
         let root = std::env::temp_dir().join(format!("piclite-initial-scan-{}", now_ms()));
         let deep = root.join("A/A1/A11");
-        let output = root.join("PicLite/nested");
+        let output = root.join("紫竹轻图/nested");
         fs::create_dir_all(&deep).unwrap();
         fs::create_dir_all(&output).unwrap();
         fs::write(root.join("root.jpg"), b"source").unwrap();
@@ -8364,7 +8292,7 @@ mod tests {
         assert!(paths.iter().any(|path| path.ends_with("deep.png")));
         assert!(!paths
             .iter()
-            .any(|path| path.starts_with(root.join("PicLite"))));
+            .any(|path| path.starts_with(root.join("紫竹轻图"))));
         fs::remove_dir_all(root).unwrap();
     }
 

@@ -30,7 +30,6 @@ const LEGACY_WORKSPACE_PLUGINS_KEY = "piclite.workspacePlugins.v1";
 const REQUESTED_SETTINGS_SECTION_KEY = "piclite.preferences.requested-section";
 const APP_VERSION = packageManifest.version;
 const APP_RELEASE_DATE = packageManifest.releaseDate;
-const LAST_UPDATE_CHECK_KEY = "piclite.update.last-checked.v1";
 const loadedFontFaces = new Set<string>();
 const BUILTIN_WORKSPACE_PLUGINS: WorkspacePlugin[] = [
   { id: "watcher", nameZh: "文件夹监测", nameEn: "Folder watch", kind: "builtin", enabled: false },
@@ -39,20 +38,6 @@ const BUILTIN_WORKSPACE_PLUGINS: WorkspacePlugin[] = [
   { id: "resize", nameZh: "尺寸调整与扩图", nameEn: "Resize & enlarge", kind: "builtin", enabled: false },
   { id: "gallery", nameZh: "图库", nameEn: "Library", kind: "builtin", enabled: false },
 ];
-const SPONSOR_METHODS = [
-  { id: "alipay", image: "/sponsor/alipay.png", zh: "支付宝", en: "Alipay" },
-  { id: "wechat-pay", image: "/sponsor/wechat-pay.png", zh: "微信支付", en: "WeChat Pay" },
-  { id: "wechat-reward", image: "/sponsor/wechat-reward.png", zh: "微信赞赏码", en: "WeChat Reward" },
-  { id: "tron", image: "/sponsor/tron.png", zh: "USDT (TRC20)", en: "USDT (TRC20)" },
-] as const;
-const CREATOR_LINKS = [
-  { id: "website", icon: "globe", label: "appmiao.com", url: "https://www.appmiao.com" },
-  { id: "bilibili", icon: "bilibili", label: "Bilibili", url: "https://space.bilibili.com/6623126" },
-  { id: "douyin", icon: "douyin", label: "抖音", url: "https://v.douyin.com/qmJBSlpdlgs/" },
-  { id: "youtube", icon: "youtube", label: "YouTube", url: "https://www.youtube.com/@amiaoapp" },
-  { id: "x", icon: "x-social", label: "X", url: "https://x.com/amiaoapp" },
-  { id: "telegram", icon: "telegram", label: "Telegram", url: "https://t.me/miaoaaaaa" },
-] as const;
 const SUPPORTED_IMAGE_PATH = /\.(?:jpe?g|jfif|png|webp|gif|avif|bmp|tiff?|ico|qoi|tga)$/i;
 
 function supportedImagePaths(paths: string[]) {
@@ -328,7 +313,7 @@ function useOptimiser(api: PicLiteBridge | undefined, settings: DesktopSettings)
 }
 
 function Brand({ compact = false }: { compact?: boolean }) {
-  return <div className={`piclite-brand ${compact ? "compact" : ""}`}><span className="piclite-symbol"><i /><i /><i /><i /></span>{!compact && <strong>PicLite</strong>}</div>;
+  return <div className={`piclite-brand ${compact ? "compact" : ""}`}><span className="piclite-symbol"><i /><i /><i /><i /></span>{!compact && <strong>紫竹轻图</strong>}</div>;
 }
 
 function DropSurface({ language, active, compact = false }: { language: Language; active: boolean; compact?: boolean }) {
@@ -542,19 +527,6 @@ function FloatingResults({ api }: { api: PicLiteBridge }) {
     };
     void attachPreviews([item], api).then((items) => setResults((current) => [...items, ...current]));
   }), [api, setResults]);
-  const checkUpdates = useCallback(async (showResult: boolean) => {
-    try {
-      const info = await api.checkForUpdates();
-      localStorage.setItem(LAST_UPDATE_CHECK_KEY, String(Date.now()));
-      setUpdateNotice(info.available
-        ? { text: tr(settings.language, `发现 PicLite ${info.latestVersion}`, `PicLite ${info.latestVersion} available`), url: info.releaseUrl }
-        : showResult ? { text: tr(settings.language, `PicLite ${info.currentVersion} 已是最新版`, `PicLite ${info.currentVersion} is up to date`) } : null);
-    } catch {
-      if (showResult) {
-        setUpdateNotice({ text: tr(settings.language, "检查更新失败，请稍后重试", "Update check failed. Try again later.") });
-      }
-    }
-  }, [api, settings.language]);
   const uploadResult = useCallback(async (item: ResultItem) => {
     if (!item.output) return;
     try {
@@ -567,21 +539,9 @@ function FloatingResults({ api }: { api: PicLiteBridge }) {
       setUpdateNotice({ text: tr(settings.language, "图床链接已复制", "Image URL copied") });
     } catch (error) { setUpdateNotice({ text: error instanceof Error ? error.message : String(error) }); }
   }, [api, settings.language]);
-  useEffect(() => {
-    if (autoUpdateCheckStartedRef.current || settings.updateCheckFrequency === "never") return;
-    const lastChecked = Number(localStorage.getItem(LAST_UPDATE_CHECK_KEY) || 0);
-    const elapsed = Date.now() - lastChecked;
-    const due = settings.updateCheckFrequency === "startup"
-      || (settings.updateCheckFrequency === "daily" && elapsed >= 24 * 60 * 60 * 1000)
-      || (settings.updateCheckFrequency === "weekly" && elapsed >= 7 * 24 * 60 * 60 * 1000);
-    if (!due) return;
-    autoUpdateCheckStartedRef.current = true;
-    const timer = window.setTimeout(() => void checkUpdates(false), 0);
-    return () => window.clearTimeout(timer);
-  }, [checkUpdates, settings.updateCheckFrequency]);
   useEffect(() => api.onTrayAction((action) => {
     if (action === "about") {
-      void api.openExternal("https://github.com/amiaoapp/PicLite");
+      void api.showPreferencesWindow();
       return;
     }
     if (action === "dropzone") { void api.showDropzoneWindow(); return; }
@@ -605,7 +565,7 @@ function FloatingResults({ api }: { api: PicLiteBridge }) {
       if (Object.keys(overrides).length) setSettings((current) => ({ ...current, preset: { ...current.preset, ...overrides } }));
       await optimise(paths, false, overrides);
     });
-  }), [api, checkUpdates, optimise, results, selectedId, setSettings, settings.preset.scale, uploadResult]);
+  }), [api, optimise, results, selectedId, setSettings, settings.preset.scale, uploadResult]);
   useEffect(() => {
     if (!settings.autoHideResults || !results.length || working) return;
     if (timer.current) window.clearTimeout(timer.current);
@@ -719,16 +679,20 @@ function BatchOptimiser({ api }: { api: PicLiteBridge }) {
   </main>;
 }
 
-type SettingsSection = "general" | "workbench" | "clipboard" | "files" | "images" | "dropzone" | "zones" | "floating" | "hosting" | "plugins" | "shortcuts" | "about" | "sponsor";
+type SettingsSection = "general" | "workbench" | "clipboard" | "files" | "images" | "dropzone" | "zones" | "floating" | "hosting" | "plugins" | "shortcuts" | "about";
 
-const SETTINGS_SECTIONS = new Set<SettingsSection>(["general", "workbench", "clipboard", "files", "images", "dropzone", "zones", "floating", "hosting", "plugins", "shortcuts", "about", "sponsor"]);
+const SETTINGS_SECTIONS = new Set<SettingsSection>(["general", "workbench", "clipboard", "files", "images", "dropzone", "zones", "floating", "hosting", "plugins", "shortcuts", "about"]);
 
 const MAIN_DESKTOP_PREFERENCES_KEY = "piclite.desktopPreferences.v1";
 type WorkbenchFileSettings = { exportMode: "same-folder" | "fixed-folder" | "overwrite"; exportSuffix: string; exportFolder: string; renameTemplate: string; confirmOverwrite: boolean };
-const DEFAULT_WORKBENCH_FILE_SETTINGS: WorkbenchFileSettings = { exportMode: "same-folder", exportSuffix: "-piclite", exportFolder: "", renameTemplate: "{name}{suffix}", confirmOverwrite: true };
+const DEFAULT_WORKBENCH_FILE_SETTINGS: WorkbenchFileSettings = { exportMode: "same-folder", exportSuffix: "-zizhuge", exportFolder: "", renameTemplate: "{name}{suffix}", confirmOverwrite: true };
 function loadWorkbenchFileSettings(): WorkbenchFileSettings {
-  try { return { ...DEFAULT_WORKBENCH_FILE_SETTINGS, ...JSON.parse(localStorage.getItem(MAIN_DESKTOP_PREFERENCES_KEY) || "{}") }; }
-  catch { return DEFAULT_WORKBENCH_FILE_SETTINGS; }
+  try {
+    const stored = JSON.parse(localStorage.getItem(MAIN_DESKTOP_PREFERENCES_KEY) || "{}") as Partial<WorkbenchFileSettings>;
+    // 品牌改名迁移：旧默认后缀 -piclite 自动换成新的
+    if (stored.exportSuffix === "-piclite") stored.exportSuffix = DEFAULT_WORKBENCH_FILE_SETTINGS.exportSuffix;
+    return { ...DEFAULT_WORKBENCH_FILE_SETTINGS, ...stored };
+  } catch { return DEFAULT_WORKBENCH_FILE_SETTINGS; }
 }
 
 function requestedSettingsSection(): SettingsSection {
@@ -750,8 +714,7 @@ const settingsNav: Array<{ id: SettingsSection; icon: string; zh: string; en: st
   { id: "hosting", icon: "upload", zh: "图床上传", en: "Image Hosting", group: "tools" },
   { id: "plugins", icon: "zones", zh: "插件", en: "Plugins" },
   { id: "shortcuts", icon: "shortcut", zh: "键盘快捷键", en: "Keyboard Shortcuts", group: "automation" },
-  { id: "about", icon: "info", zh: "更新与关于", en: "Updates & About", group: "support" },
-  { id: "sponsor", icon: "heart", zh: "赞助支持", en: "Support PicLite" },
+  { id: "about", icon: "info", zh: "关于", en: "About", group: "support" },
 ];
 
 const FLOATING_ACTION_OPTIONS: FloatingAction[] = ["downscale", "watermark", "undo", "copy", "preview", "reveal", "gallery", "upload"];
@@ -785,7 +748,6 @@ function Preferences({ api }: { api: PicLiteBridge }) {
   const [settings, setSettings] = useDesktopSettings();
   const [workbenchFiles, setWorkbenchFiles] = useState<WorkbenchFileSettings>(loadWorkbenchFileSettings);
   const [section, setSection] = useState<SettingsSection>(requestedSettingsSection);
-  const [updateText, setUpdateText] = useState("");
   const [recordingShortcut, setRecordingShortcut] = useState<"shortcutToggleDropzone" | "shortcutOptimiseClipboard" | "shortcutShowMain" | "shortcutShowGallery" | "shortcutUploadCurrent" | null>(null);
   const [shortcutStatus, setShortcutStatus] = useState("");
   const [cleanupText, setCleanupText] = useState("");
@@ -903,7 +865,10 @@ function Preferences({ api }: { api: PicLiteBridge }) {
       showMain: settings.shortcutShowMain,
       showGallery: settings.shortcutShowGallery,
       uploadCurrent: settings.shortcutUploadCurrent,
-    }).then(() => setShortcutStatus(""), (error) => setShortcutStatus(error instanceof Error ? error.message : String(error)));
+    }).then(() => setShortcutStatus(""), (error) => {
+      console.warn("configureGlobalShortcuts failed", error);
+      setShortcutStatus(tr(language, "部分全局快捷键已被其他软件占用，请换一个组合键", "Some global shortcuts are already used by another app — please pick a different combination."));
+    });
   }, [api, recordingShortcut, settings.shortcutOptimiseClipboard, settings.shortcutShowGallery, settings.shortcutShowMain, settings.shortcutToggleDropzone, settings.shortcutUploadCurrent, settings.shortcutsEnabled]);
   const cleanNow = async () => {
     if (!settings.outputFolder) return;
@@ -915,21 +880,6 @@ function Preferences({ api }: { api: PicLiteBridge }) {
       setCleanupText(error instanceof Error ? error.message : String(error));
     }
   };
-  const checkUpdates = useCallback(async () => {
-    setUpdateText(tr(language, "正在检查…", "Checking…"));
-    try {
-      const info = await api.checkForUpdates();
-      localStorage.setItem(LAST_UPDATE_CHECK_KEY, String(Date.now()));
-      setUpdateText(info.available ? tr(language, `发现新版本 ${info.latestVersion}`, `Version ${info.latestVersion} is available`) : tr(language, `已经是最新版 ${info.currentVersion}`, `PicLite ${info.currentVersion} is up to date`));
-    } catch (error) {
-      setUpdateText(String(error));
-    }
-  }, [api, language]);
-  useEffect(() => {
-    if (section !== "about" || updateText) return;
-    const timer = window.setTimeout(() => void checkUpdates(), 80);
-    return () => window.clearTimeout(timer);
-  }, [checkUpdates, section, updateText]);
   const selectWatermarkFont = async (family: string) => {
     patch("floatingWatermark", { ...settings.floatingWatermark, fontFamily: family });
     setFontStatus(tr(language, `正在载入 ${family}…`, `Loading ${family}…`));
@@ -1010,7 +960,7 @@ function Preferences({ api }: { api: PicLiteBridge }) {
             ] as const).map(([value, label]) => <button type="button" className={`settings-palette ${value} ${settings.colorTheme === value ? "active" : ""}`} aria-pressed={settings.colorTheme === value} key={value} onClick={() => patch("colorTheme", value)}><span aria-hidden="true"><i /><i /><i /></span><b>{label}</b></button>)}
           </div></SettingsRow>
           <SettingsRow title={<T language={language} zh="登录时启动" en="Launch at login" />}><Switch label="launch" checked={settings.launchAtLogin} onChange={(value) => void toggleAutostart(value)} /></SettingsRow>
-          <SettingsRow title={<T language={language} zh="暂停自动优化" en="Pause automatic optimisations" />} note={<T language={language} zh="保留菜单栏功能，但暂停监测和自动处理" en="Keep PicLite running without automatic processing" />}><Switch label="pause" checked={settings.pauseAutomaticOptimisations} onChange={(value) => patch("pauseAutomaticOptimisations", value)} /></SettingsRow>
+          <SettingsRow title={<T language={language} zh="暂停自动优化" en="Pause automatic optimisations" />} note={<T language={language} zh="保留菜单栏功能，但暂停监测和自动处理" en="Keep ZizhuQingTu running without automatic processing" />}><Switch label="pause" checked={settings.pauseAutomaticOptimisations} onChange={(value) => patch("pauseAutomaticOptimisations", value)} /></SettingsRow>
           <SettingsRow title={<T language={language} zh="在任务栏 / Dock 显示" en="Show in taskbar / Dock" />} note={settings.showInTaskbarDock ? <T language={language} zh="主窗口失焦后保持显示，可从任务栏或 Dock 随时切换回来" en="Keep the main window available from the taskbar or Dock when it loses focus" /> : <T language={language} zh="不占用任务栏或 Dock，主窗口失焦后隐藏到托盘或菜单栏" en="Hide the main window to the tray or menu bar when it loses focus" />}><Switch label="taskbar dock" checked={settings.showInTaskbarDock} onChange={(value) => patch("showInTaskbarDock", value)} /></SettingsRow>
         </SettingsCard>
         <SettingsCard title={<T language={language} zh="优化" en="Optimisation" />}>
@@ -1021,7 +971,7 @@ function Preferences({ api }: { api: PicLiteBridge }) {
       </>}
       {section === "workbench" && <SettingsCard title={<T language={language} zh="工作台导出与文件" en="Workbench export and files" />} note={<T language={language} zh="只控制主窗口工作台的“导出”按钮，不影响悬浮窗和文件夹监测" en="Controls the main workbench Export button only; floating results and folder watch use their own rules" />}>
         <SettingsRow title={<T language={language} zh="导出位置" en="Export location" />}><Select label="workbench export placement" value={workbenchFiles.exportMode} onChange={(value) => patchWorkbenchFiles({ exportMode: value })}><option value="same-folder">{tr(language, "原文件夹重命名", "Rename in original folder")}</option><option value="fixed-folder">{tr(language, "固定文件夹", "Fixed folder")}</option><option value="overwrite">{tr(language, "覆盖源文件", "Replace original")}</option></Select></SettingsRow>
-        {workbenchFiles.exportMode !== "overwrite" && <SettingsRow title={<T language={language} zh="文件名后缀" en="Filename suffix" />}><input value={workbenchFiles.exportSuffix} onChange={(event) => patchWorkbenchFiles({ exportSuffix: event.target.value })} placeholder="-piclite" /></SettingsRow>}
+        {workbenchFiles.exportMode !== "overwrite" && <SettingsRow title={<T language={language} zh="文件名后缀" en="Filename suffix" />}><input value={workbenchFiles.exportSuffix} onChange={(event) => patchWorkbenchFiles({ exportSuffix: event.target.value })} placeholder="-zizhuge" /></SettingsRow>}
         {workbenchFiles.exportMode !== "overwrite" && <SettingsRow title={<T language={language} zh="重命名模板" en="Rename template" />} note={<T language={language} zh="支持 {name} {suffix} {date} {time} {datetime} {size} {width} {height} {ext}" en="Supports {name} {suffix} {date} {time} {datetime} {size} {width} {height} {ext}" />}><input value={workbenchFiles.renameTemplate} onChange={(event) => patchWorkbenchFiles({ renameTemplate: event.target.value })} /></SettingsRow>}
         {workbenchFiles.exportMode === "fixed-folder" && <SettingsRow title={<T language={language} zh="固定输出文件夹" en="Fixed output folder" />}><button className="path-button" onClick={() => void chooseWorkbenchOutput()}>{workbenchFiles.exportFolder || tr(language, "选择文件夹…", "Choose folder…")}</button></SettingsRow>}
         {workbenchFiles.exportMode === "overwrite" && <SettingsRow title={<T language={language} zh="覆盖前再次确认" en="Confirm before replacing" />} note={<T language={language} zh="覆盖操作无法撤销" en="Replacing a file cannot be undone" />}><Switch label="confirm overwrite" checked={workbenchFiles.confirmOverwrite} onChange={(value) => patchWorkbenchFiles({ confirmOverwrite: value })} /></SettingsRow>}
@@ -1034,11 +984,11 @@ function Preferences({ api }: { api: PicLiteBridge }) {
       </SettingsCard>}
       {section === "files" && <><SettingsCard title={<T language={language} zh="悬浮窗文件保存" en="Floating window file saving" />} note={<T language={language} zh="只控制剪贴板、拖放区和悬浮结果生成的文件" en="Controls files created by clipboard, drop zone and floating results only" />}>
         <SettingsRow title={<T language={language} zh="优化文件位置" en="Optimised file placement" />} note={<T language={language} zh="原图保留不变，优化结果写入所选位置" en="Keep originals and write optimised results to the selected location" />}><Select label="placement" value={settings.filePlacement} onChange={(value) => patch("filePlacement", value)}><option value="same-folder">{tr(language, "原文件夹", "Same folder as original")}</option><option value="fixed-folder">{tr(language, "指定文件夹", "Specific folder")}</option></Select></SettingsRow>
-        <SettingsRow title={<T language={language} zh="文件名后缀" en="Filename suffix" />}><input value={settings.outputSuffix} onChange={(event) => patch("outputSuffix", event.target.value)} placeholder="-piclite" /></SettingsRow>
+        <SettingsRow title={<T language={language} zh="文件名后缀" en="Filename suffix" />}><input value={settings.outputSuffix} onChange={(event) => patch("outputSuffix", event.target.value)} placeholder="-zizhuge" /></SettingsRow>
         <SettingsRow title={<T language={language} zh="重命名模板" en="Rename template" />} note={<T language={language} zh="可用：{name} {suffix} {date} {time} {datetime} {size} {width} {height} {ext}" en="Variables: {name} {suffix} {date} {time} {datetime} {size} {width} {height} {ext}" />}><input value={settings.renameTemplate} onChange={(event) => patch("renameTemplate", event.target.value)} placeholder="{name}{suffix}" /></SettingsRow>
         {settings.filePlacement === "fixed-folder" && <SettingsRow title={<T language={language} zh="输出目录" en="Output folder" />}><button className="path-button" onClick={() => void chooseOutput()}>{settings.outputFolder || tr(language, "选择文件夹…", "Choose folder…")}</button></SettingsRow>}
         <SettingsRow title={<T language={language} zh="保留创建和修改日期" en="Preserve creation and modification dates" />}><Switch label="dates" checked={settings.preserveDates} onChange={(value) => patch("preserveDates", value)} /></SettingsRow>
-        <SettingsRow title={<T language={language} zh="定期清理结果图" en="Clean up results automatically" />} note={settings.filePlacement === "fixed-folder" ? <T language={language} zh="只删除指定输出目录中带当前 PicLite 后缀的到期图片" en="Only expired images with the current PicLite suffix are removed from the output folder" /> : <T language={language} zh="请先选择“指定文件夹”，以免扫描和误删原图目录" en="Choose “Specific folder” first so original folders are never scanned" />}><Switch label="cleanup" checked={settings.autoCleanupEnabled} onChange={(value) => patch("autoCleanupEnabled", value)} /></SettingsRow>
+        <SettingsRow title={<T language={language} zh="定期清理结果图" en="Clean up results automatically" />} note={settings.filePlacement === "fixed-folder" ? <T language={language} zh="只删除指定输出目录中带当前紫竹轻图后缀的到期图片" en="Only expired images with the current ZizhuQingTu suffix are removed from the output folder" /> : <T language={language} zh="请先选择“指定文件夹”，以免扫描和误删原图目录" en="Choose “Specific folder” first so original folders are never scanned" />}><Switch label="cleanup" checked={settings.autoCleanupEnabled} onChange={(value) => patch("autoCleanupEnabled", value)} /></SettingsRow>
         {settings.autoCleanupEnabled && <SettingsRow title={<T language={language} zh="保留时长" en="Keep results for" />} note={cleanupText}><span className="number-field"><input type="number" min="1" max="999" value={settings.autoCleanupAmount} onChange={(event) => patch("autoCleanupAmount", Math.max(1, Number(event.target.value)))} /><Select label="cleanup unit" value={settings.autoCleanupUnit} onChange={(value) => patch("autoCleanupUnit", value)}><option value="hours">{tr(language, "小时", "hours")}</option><option value="days">{tr(language, "天", "days")}</option><option value="months">{tr(language, "月", "months")}</option></Select><button className="settings-button" disabled={settings.filePlacement !== "fixed-folder" || !settings.outputFolder} onClick={() => void cleanNow()}>{tr(language, "立即清理", "Clean now")}</button></span></SettingsRow>}
       </SettingsCard></>}
       {section === "images" && <>
@@ -1047,7 +997,7 @@ function Preferences({ api }: { api: PicLiteBridge }) {
           <SettingsRow title={<T language={language} zh="压缩质量" en="Compression quality" />} note={settings.preset.mode === "auto" ? tr(language, "自动", "Automatic") : `${settings.preset.quality}%`}><input disabled={settings.preset.mode === "auto"} type="range" min="5" max="100" value={settings.preset.quality} onChange={(event) => patchPreset({ mode: "manual", quality: Number(event.target.value) })} /></SettingsRow>
           <SettingsRow title={<T language={language} zh="缩放" en="Downscale" />} note={settings.preset.mode === "auto" ? "100%" : `${settings.preset.scale}%`}><input disabled={settings.preset.mode === "auto"} type="range" min="5" max="100" value={settings.preset.scale} onChange={(event) => patchPreset({ mode: "manual", scale: Number(event.target.value) })} /></SettingsRow>
           <SettingsRow title={<T language={language} zh="输出格式" en="Output format" />}><Select label="format" disabled={settings.preset.mode === "auto"} value={settings.preset.mode === "auto" ? "keep" : settings.preset.format} onChange={(value) => patchPreset({ format: value })}><option value="keep">{tr(language, settings.preset.mode === "auto" ? "自动择优（JPEG / WebP / PNG）" : "保持原格式", settings.preset.mode === "auto" ? "Auto-select (JPEG / WebP / PNG)" : "Keep original format")}</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="png">PNG</option></Select></SettingsRow>
-          <SettingsRow title={<T language={language} zh="目标文件大小" en="Target file size" />} note={<T language={language} zh="设为 0 表示不限；启用后会继续降低画质和尺寸直至尽量满足上限" en="0 means unlimited; PicLite lowers quality and dimensions further to approach the limit" />}><span className="number-field"><input type="number" min="0" max="102400" value={settings.preset.targetSizeKb} onChange={(event) => patchPreset({ targetSizeKb: Math.max(0, Math.min(102400, Number(event.target.value) || 0)) })} /> KB</span></SettingsRow>
+          <SettingsRow title={<T language={language} zh="目标文件大小" en="Target file size" />} note={<T language={language} zh="设为 0 表示不限；启用后会继续降低画质和尺寸直至尽量满足上限" en="0 means unlimited; ZizhuQingTu lowers quality and dimensions further to approach the limit" />}><span className="number-field"><input type="number" min="0" max="102400" value={settings.preset.targetSizeKb} onChange={(event) => patchPreset({ targetSizeKb: Math.max(0, Math.min(102400, Number(event.target.value) || 0)) })} /> KB</span></SettingsRow>
         </SettingsCard>
       </>}
       {section === "dropzone" && <SettingsCard title={<T language={language} zh="拖放区" en="Drop zone" />} note={<T language={language} zh="把图片拖入悬浮结果窗口即可优化" en="Drop images into the floating results window to optimise them" />}>
@@ -1095,7 +1045,7 @@ function Preferences({ api }: { api: PicLiteBridge }) {
         <SettingsRow title={<T language={language} zh="颜色 / 透明度" en="Colour / opacity" />}><span className="inline-fields compact"><input type="color" value={settings.floatingWatermark.color} onChange={(event) => patch("floatingWatermark", { ...settings.floatingWatermark, color: event.target.value })} /><input type="number" min="1" max="100" value={settings.floatingWatermark.opacity} onChange={(event) => patch("floatingWatermark", { ...settings.floatingWatermark, opacity: Number(event.target.value) })} /></span></SettingsRow>
         <SettingsRow title={<T language={language} zh="自动隐藏" en="Auto hide" />}><Switch label="hide" checked={settings.autoHideResults} onChange={(value) => patch("autoHideResults", value)} /></SettingsRow>
         <SettingsRow title={<T language={language} zh="结果保留时间" en="Dismiss result after" />}><span className="number-field"><input type="number" min="1" max="300" value={settings.autoHideSeconds} onChange={(event) => patch("autoHideSeconds", Math.max(1, Number(event.target.value)))} /> {tr(language, "秒", "seconds")}</span></SettingsRow>
-        <div className="floating-preview"><ResultCard item={{ id: "preview", source: "example-photo.jpg", output: "example-photo-piclite.webp", originalBytes: 750000, outputBytes: 211000, keptOriginal: false, status: "done", width: 1920, height: 1080 }} api={api} settings={settings} active select={() => undefined} remove={() => undefined} downscale={() => undefined} watermark={() => undefined} upload={() => undefined} undo={() => undefined} updateFormat={() => undefined} /></div>
+        <div className="floating-preview"><ResultCard item={{ id: "preview", source: "example-photo.jpg", output: "example-photo-zizhuge.webp", originalBytes: 750000, outputBytes: 211000, keptOriginal: false, status: "done", width: 1920, height: 1080 }} api={api} settings={settings} active select={() => undefined} remove={() => undefined} downscale={() => undefined} watermark={() => undefined} upload={() => undefined} undo={() => undefined} updateFormat={() => undefined} /></div>
       </SettingsCard>}
       {section === "hosting" && <SettingsCard title={<T language={language} zh="图床上传" en="Image hosting" />} note={<T language={language} zh="兼容 WebDAV、S3/R2、OSS、FTP 和 SFTP；成功后自动复制链接" en="WebDAV, S3/R2, OSS, FTP and SFTP; the resulting URL is copied automatically" />}>
         <SettingsRow title={<T language={language} zh="服务类型" en="Provider" />}><Select label="provider" value={uploadProfile.provider} onChange={(provider) => setUploadProfile((current) => ({ ...current, provider }))}><option value="webdav">WebDAV</option><option value="s3">S3 / MinIO</option><option value="r2">Cloudflare R2</option><option value="oss">Aliyun OSS</option><option value="ftp">FTP</option><option value="sftp">SFTP</option></Select></SettingsRow>
@@ -1128,42 +1078,15 @@ function Preferences({ api }: { api: PicLiteBridge }) {
         {shortcutStatus && <p className="settings-status error">{shortcutStatus}</p>}
       </SettingsCard>}
       {section === "about" && <>
-        <section className="update-about-hero"><Brand /><div><span><T language={language} zh="当前版本" en="Current version" /></span><strong>PicLite v{APP_VERSION}</strong><small><T language={language} zh={`更新时间 ${APP_RELEASE_DATE}`} en={`Updated ${APP_RELEASE_DATE}`} /> · Tauri 2 + Rust</small></div></section>
-        <SettingsCard title={<T language={language} zh="更新" en="Updates" />}>
-          <SettingsRow title={<T language={language} zh="自动检查更新" en="Automatic update checks" />} note={<T language={language} zh="按设定频率检查 GitHub Releases" en="Check GitHub Releases at the selected interval" />}><Select label={tr(language, "自动检查更新", "Automatic update checks")} value={settings.updateCheckFrequency} onChange={(value) => patch("updateCheckFrequency", value)}><option value="startup">{tr(language, "打开软件时", "When PicLite opens")}</option><option value="daily">{tr(language, "每天", "Daily")}</option><option value="weekly">{tr(language, "每周", "Weekly")}</option><option value="never">{tr(language, "不自动检查", "Never")}</option></Select></SettingsRow>
-          <SettingsRow title={<T language={language} zh="检查 GitHub Releases" en="Check GitHub Releases" />} note={updateText}><button className="settings-button" onClick={() => void checkUpdates()}><T language={language} zh="立即检查" en="Check now" /></button></SettingsRow>
-        </SettingsCard>
-        <SettingsCard title={<T language={language} zh="关于 PicLite" en="About PicLite" />}><div className="about-pane"><p><T language={language} zh="面向自媒体工作人员和开发人员的本地优先跨平台媒体优化工具。" en="A local-first, cross-platform media optimiser for content creators and developers." /></p><small>GPL-3.0-or-later · Tauri 2 + Rust</small><p><T language={language} zh="工作流与部分实现基于 GPL 项目 Clop；PicLite 使用独立名称、图标和跨平台实现。" en="Workflow and parts of the implementation are based on the GPL-licensed Clop project. PicLite uses its own name, icons and cross-platform implementation." /></p><button className="settings-button" onClick={() => void api.openExternal("https://github.com/amiaoapp/PicLite")}><T language={language} zh="打开 GitHub" en="Open GitHub" /></button></div></SettingsCard>
-      </>}
-      {section === "sponsor" && <>
-        <section className="sponsor-hero">
-          <span className="sponsor-heart" aria-hidden="true"><Icon name="heart" /></span>
-          <div><span><T language={language} zh="感谢赞助支持" en="Thank you for supporting PicLite" /></span><strong><T language={language} zh="让 PicLite 继续轻盈地走下去" en="Help PicLite keep moving forward" /></strong><small><T language={language} zh="软件会继续免费维护。每一份支持，都会用于开发、测试和跨平台发布。" en="PicLite will remain free to use. Your support helps fund development, testing and cross-platform releases." /></small></div>
-        </section>
-        <SettingsCard title={<T language={language} zh="赞助方式" en="Ways to support" />} note={<T language={language} zh="请选择你方便的方式，感谢你的认可。" en="Choose whichever method works for you. Thank you." />}>
-          <div className="sponsor-grid">
-            {SPONSOR_METHODS.map((method) => <figure className="sponsor-method" key={method.id}>
-              <div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={method.image} alt={tr(language, `${method.zh}收款码`, `${method.en} payment QR code`)} />
-                {method.id === "tron" && <span className="sponsor-wallet-address"><small>{tr(language, "钱包地址", "Wallet address")}</small><code><b>TV3yLCDwV9RVeW1hb</b><b>yUY7i3UKrMK63gJ5x</b></code></span>}
-              </div>
-              <figcaption>{tr(language, method.zh, method.en)}</figcaption>
-            </figure>)}
-          </div>
-        </SettingsCard>
-        <SettingsCard title={<T language={language} zh="找到阿喵" en="Find Amiao online" />} note={<T language={language} zh="网站与社交平台" en="Website and social profiles" />}>
-          <div className="creator-links">
-            {CREATOR_LINKS.map((link) => <button type="button" key={link.id} title={link.label} aria-label={link.label} onClick={() => void api.openExternal(link.url)}><Icon name={link.icon} /><span>{link.label}</span></button>)}
-          </div>
-        </SettingsCard>
+        <section className="update-about-hero"><Brand /><div><span><T language={language} zh="当前版本" en="Current version" /></span><strong>紫竹轻图 v{APP_VERSION}</strong><small><T language={language} zh={`更新时间 ${APP_RELEASE_DATE}`} en={`Updated ${APP_RELEASE_DATE}`} /> · Tauri 2 + Rust</small></div></section>
+        <SettingsCard title={<T language={language} zh="关于紫竹轻图" en="About ZizhuQingTu" />}><div className="about-pane"><p><T language={language} zh="面向自媒体工作人员和开发人员的本地优先跨平台媒体优化工具。" en="A local-first, cross-platform media optimiser for content creators and developers." /></p><small>GPL-3.0-or-later · Tauri 2 + Rust</small><p><T language={language} zh="工作流与部分实现基于 GPL 项目 Clop；紫竹轻图基于 PicLite 修改，使用独立名称、图标和跨平台实现。" en="Workflow and parts of the implementation are based on the GPL-licensed Clop project. ZizhuQingTu is based on PicLite and uses its own name, icons and cross-platform implementation." /></p></div></SettingsCard>
       </>}
     </div>
   </main>;
 }
 
 export function PicLiteDesktopApp() {
-  if (!bridge) return <div className="fatal">PicLite desktop bridge is unavailable.</div>;
+  if (!bridge) return <div className="fatal">ZizhuQingTu desktop bridge is unavailable.</div>;
   if (bridge.windowLabel === "preferences") return <Preferences api={bridge} />;
   if (bridge.windowLabel === "dropzone") return <FloatingResults api={bridge} />;
   return <BatchOptimiser api={bridge} />;

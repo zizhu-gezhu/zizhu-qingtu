@@ -20,33 +20,33 @@ jobs:
             os: windows-latest
             target: x86_64-pc-windows-msvc
             bundles: nsis,msi
-            artifact: PicLite-Windows-x64
+            artifact: ZizhuQingTu-Windows-x64
           - name: Windows ARM64
             os: windows-11-arm
             target: aarch64-pc-windows-msvc
             node_arch: x64
             bundles: nsis,msi
-            artifact: PicLite-Windows-arm64
+            artifact: ZizhuQingTu-Windows-arm64
           - name: macOS Apple Silicon
             os: macos-15
             target: aarch64-apple-darwin
             bundles: dmg
-            artifact: PicLite-macOS-arm64
+            artifact: ZizhuQingTu-macOS-arm64
           - name: macOS Intel
             os: macos-15-intel
             target: x86_64-apple-darwin
             bundles: dmg
-            artifact: PicLite-macOS-x64
+            artifact: ZizhuQingTu-macOS-x64
           - name: Linux x64
             os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
             bundles: appimage,deb
-            artifact: PicLite-Linux-x64
+            artifact: ZizhuQingTu-Linux-x64
           - name: Linux arm64
             os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
             bundles: appimage,deb
-            artifact: PicLite-Linux-arm64
+            artifact: ZizhuQingTu-Linux-arm64
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -84,8 +84,8 @@ jobs:
         run: |
           $dir = "portable/${{ matrix.artifact }}-portable"
           New-Item -ItemType Directory -Force $dir | Out-Null
-          Copy-Item "src-tauri/target/${{ matrix.target }}/release/piclite.exe" "$dir/PicLite.exe"
-          Set-Content "$dir/portable.txt" "PicLite portable mode"
+          Copy-Item "src-tauri/target/${{ matrix.target }}/release/zizhu-qingtu.exe" "$dir/ZizhuQingTu.exe"
+          Set-Content "$dir/portable.txt" "ZizhuQingTu portable mode"
           Copy-Item "docs/PORTABLE.txt" "$dir/README.txt"
           Compress-Archive -Path "$dir/*" -DestinationPath "${{ matrix.artifact }}-portable.zip"
       - name: Upload Windows portable
@@ -114,5 +114,5 @@ jobs:
           if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
             gh release upload "${GITHUB_REF_NAME}" "${files[@]}" --clobber --repo "${GITHUB_REPOSITORY}"
           else
-            gh release create "${GITHUB_REF_NAME}" "${files[@]}" --title "PicLite 图轻 ${GITHUB_REF_NAME}" --notes-file "docs/RELEASE-${GITHUB_REF_NAME#v}.md" --repo "${GITHUB_REPOSITORY}"
+            gh release create "${GITHUB_REF_NAME}" "${files[@]}" --title "紫竹轻图 ${GITHUB_REF_NAME}" --notes-file "docs/RELEASE-${GITHUB_REF_NAME#v}.md" --repo "${GITHUB_REPOSITORY}"
           fi

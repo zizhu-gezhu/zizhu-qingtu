@@ -2,7 +2,7 @@ import "./tauri-bridge";
 import { createRoot } from "react-dom/client";
 
 const root = document.getElementById("root");
-if (!root) throw new Error("PicLite renderer root is missing");
+if (!root) throw new Error("ZizhuQingTu renderer root is missing");
 
 const floatingWindow = ["dropzone", "preferences"].includes(window.picLite?.windowLabel || "main");
 

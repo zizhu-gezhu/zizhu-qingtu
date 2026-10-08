@@ -1,10 +1,21 @@
-# PicLite
+# ZizhuQingTu
 
 A local-first image optimiser for content creators and developers, available on Windows, macOS, Linux, and as a self-hosted web app.
 
-[中文](README.md) · [Desktop downloads](https://github.com/amiaoapp/PicLite/releases) · [Web demo](https://amiaoapp.github.io/PicLite/) · [Plugin development](docs/PLUGIN_DEVELOPMENT.en-US.md) · [Issues](https://github.com/amiaoapp/PicLite/issues)
+[中文](README.md) · [Desktop downloads](https://github.com/zizhu-gezhu/zizhu-qingtu/releases) · [Issues](https://github.com/zizhu-gezhu/zizhu-qingtu/issues)
 
-![PicLite workspace](public/og.png)
+![ZizhuQingTu workspace](public/og.png)
+
+## Origin and licence
+
+This work is **based on [PicLite](https://github.com/amiaoapp/PicLite)**.
+
+- Original author: APP喵 (GitHub: [amiaoapp](https://github.com/amiaoapp))
+- Changes: rebranding (product name, icons, UI copy), removal of the original author's sponsorship and social links, added open-source notices
+- Modified: 2026-10-08
+- Licence: **GPL-3.0-or-later** (see [LICENSE](LICENSE))
+
+Released under GPL-3.0: anyone may use, modify and redistribute it, provided the original author is credited and derivatives are released under the same licence. See [NOTICE.md](NOTICE.md).
 
 ## Highlights
 
@@ -36,11 +47,11 @@ The desktop app can open its floating window from a global shortcut, copied imag
 
 ### Multi-task folder monitoring
 
-Add and save tasks directly on the Folder Monitor page. Independent folders such as A, B, and C can run at the same time, each with its own format, quality, scale, dimensions, output location, naming rule, completion notification, and floating-result preference. Tasks take effect immediately and are restored after restart; PicLite must remain running, though it can be minimised to the tray.
+Add and save tasks directly on the Folder Monitor page. Independent folders such as A, B, and C can run at the same time, each with its own format, quality, scale, dimensions, output location, naming rule, completion notification, and floating-result preference. Tasks take effect immediately and are restored after restart; ZizhuQingTu must remain running, though it can be minimised to the tray.
 
 ## Download
 
-Get the latest installers from [GitHub Releases](https://github.com/amiaoapp/PicLite/releases):
+Get the latest installers from [GitHub Releases](https://github.com/zizhu-gezhu/zizhu-qingtu/releases):
 
 - Windows x64 / ARM64: `.exe`, `.msi`, or portable `.zip`
 - macOS Apple Silicon / Intel: `.dmg`
@@ -50,15 +61,15 @@ The current macOS builds use ad-hoc signing. On first launch, macOS may require 
 
 ## Web and Docker
 
-The [GitHub Pages demo](https://amiaoapp.github.io/PicLite/) is a static, install-free build. Images are processed locally in your browser and are not uploaded to a server. Use the desktop app for the system tray, global shortcuts, persistent clipboard monitoring, and watched folders.
+The web build is a static, install-free version. Images are processed locally in your browser and are not uploaded to a server. Use the desktop app for the system tray, global shortcuts, persistent clipboard monitoring, and watched folders.
 
-For a LAN deployment, custom domain, or your own service endpoint, use the GHCR image. The default service port is `3456`.
+For a LAN deployment, custom domain, or your own service endpoint, use the container image. The default service port is `3456`.
 
 ### Docker Compose (recommended)
 
 ```bash
-git clone https://github.com/amiaoapp/PicLite.git
-cd PicLite
+git clone https://github.com/zizhu-gezhu/zizhu-qingtu.git
+cd zizhu-qingtu
 docker compose pull
 docker compose up -d
 ```
@@ -69,15 +80,15 @@ Upgrade, inspect status, and follow logs:
 docker compose pull
 docker compose up -d --remove-orphans
 docker compose ps
-docker compose logs -f piclite
+docker compose logs -f zizhu-qingtu
 ```
 
 Create a `.env` file in the project directory to change the bind address, host port, or image tag:
 
 ```dotenv
-PICLITE_BIND=0.0.0.0
-PICLITE_PORT=3456
-PICLITE_TAG=1.8.2
+ZIZHU_QINGTU_BIND=0.0.0.0
+ZIZHU_QINGTU_PORT=3456
+ZIZHU_QINGTU_TAG=1.0.0
 ```
 
 To build from the current source tree instead:
@@ -90,18 +101,18 @@ docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
 
 ```bash
 docker run -d \
-  --name piclite \
+  --name zizhu-qingtu \
   -p 3456:3456 \
   --restart unless-stopped \
-  ghcr.io/amiaoapp/piclite:latest
+  ghcr.io/zizhu-gezhu/zizhu-qingtu:latest
 ```
 
-Open `http://SERVER_IP:3456`. Both the GitHub Pages and Docker web builds include the compression workspace; browser security restrictions prevent system-tray, global-shortcut, and persistent folder-monitoring features.
+Open `http://SERVER_IP:3456`. The web build includes the compression workspace; browser security restrictions prevent system-tray, global-shortcut, and persistent folder-monitoring features.
 
 For a reverse proxy, forward your domain to `http://127.0.0.1:3456`. Caddy example:
 
 ```caddyfile
-piclite.example.com {
+zizhu-qingtu.example.com {
   reverse_proxy 127.0.0.1:3456
 }
 ```
@@ -109,6 +120,11 @@ piclite.example.com {
 ## Development
 
 Requires Node.js 22.13+, stable Rust, and the Tauri 2 system dependencies for your target platform.
+
+> Windows extras:
+> 1. **MSVC Build Tools** (with the “Desktop development with C++” workload) and **Rust** (`rustup`);
+> 2. **Strawberry Perl** — the `ssh2` crate enables `vendored-openssl`, and building OpenSSL needs a full Perl; Git's bundled Perl lacks required modules;
+> 3. ⚠️ **The project path must be pure ASCII.** A non-ASCII path makes OpenSSL's perl/nmake write into a mojibake directory and the build fails.
 
 ```bash
 npm install
@@ -127,7 +143,7 @@ npm run desktop:build
 
 ### Built-in plugin: Batch image rename
 
-Open **Batch rename** in the main window and choose a root folder. This built-in plugin is enabled by default and can be disabled under **Settings → Plugins**. PicLite scans images recursively, searches ancestor folder names up to the selected root, and stops at the first matching parent.
+Open **Batch rename** in the main window and choose a root folder. This built-in plugin is enabled by default and can be disabled under **Settings → Plugins**. It scans images recursively, searches ancestor folder names up to the selected root, and stops at the first matching parent.
 
 - `A/A1/A11/【1-1】A111/A1111/photo.jfif` becomes `0101_photo.jfif` with the default rule.
 - Numeric captures are zero-padded (`1-1 → 0101`, `11-1 → 1101`) without truncating longer values.
@@ -135,7 +151,7 @@ Open **Batch rename** in the main window and choose a root folder. This built-in
 - `{1:initial}` keeps the first initial; `{1:initials}` turns `New York` into `NY`.
 - Templates also support `{code}`, `{name}`, `{ext}`, `{folder}`, `{match}`, `{1}`, `{2}`, `{index}`, and `{index:03}`. Review the preview before applying; unmatched files and existing targets are reported and never overwritten. Modified patterns, templates, separators, and conversion settings can be saved as reusable custom rules or used to update an existing custom rule.
 
-PicLite plugins are no longer embedded with an `iframe`. The desktop app fetches HTML/CSS/JavaScript and mounts it in a trusted workbench runtime, avoiding `X-Frame-Options` failures and allowing a custom tab name. Install only code you trust.
+Plugins are no longer embedded with an `iframe`. The desktop app fetches HTML/CSS/JavaScript and mounts it in a trusted workbench runtime, avoiding `X-Frame-Options` failures and allowing a custom tab name. Install only code you trust.
 
 A minimal plugin is a single HTML file:
 
@@ -169,13 +185,8 @@ See the full [plugin development guide](docs/PLUGIN_DEVELOPMENT.en-US.md) for th
 
 Optimisation runs locally in the browser or desktop app. Files leave your device only when you explicitly upload them to a storage provider you configured.
 
-PicLite is licensed under [GPL-3.0-or-later](LICENSE). Its desktop automation workflow is inspired by and adapted from the GPL-licensed [FuzzyIdeas/Clop](https://github.com/FuzzyIdeas/Clop) project. PicLite does not use the Clop trademark. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+ZizhuQingTu is based on [PicLite](https://github.com/amiaoapp/PicLite) by APP喵 and is licensed under [GPL-3.0-or-later](LICENSE). Its desktop automation workflow is inspired by and adapted from the GPL-licensed [FuzzyIdeas/Clop](https://github.com/FuzzyIdeas/Clop) project. ZizhuQingTu does not use the Clop trademark. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [NOTICE.md](NOTICE.md).
 
+### Portable mode
 
-### Version 1.6: watch tasks and naming
-
-Batch rename is now a built-in plugin (Settings → Batch rename). It searches ancestors up to the selected root and supports numeric padding, Chinese/English words, `{1:initial}` and `{1:initials}`. For example, `A/A1/A11/【1-1】A111/A1111/photo.jfif` becomes `0101_photo.jfif`. Preview detects existing targets and unrelated files are left alone.
-
-Settings → Images saves independent watch tasks with individual formats, sizes, output locations, naming and system notifications. Non-overlapping roots run concurrently and resume when PicLite starts. Keep PicLite running, including in the tray. Choose whether to skip images that already meet the format and size requirements; folder naming still applies when enabled. Originals are preserved and generated outputs are excluded from watching.
-
-JFIF uses the JPEG codec throughout import, compression and renaming. EPUB archives must be extracted separately. Windows x64 and ARM64 portable ZIPs store settings and cache in `PicLite-Data` beside the executable while `portable.txt` exists. WebView2 Runtime is required.
+Windows x64 and ARM64 portable ZIPs store settings and cache in `紫竹轻图-Data` beside the executable while `portable.txt` exists. WebView2 Runtime is required.

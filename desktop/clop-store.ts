@@ -8,7 +8,7 @@ const SETTINGS_EVENT = "piclite:settings-changed";
 export const DEFAULT_SETTINGS: DesktopSettings = {
   language: "zh",
   appearance: "system",
-  colorTheme: "graphite",
+  colorTheme: "green",
   updateCheckFrequency: "startup",
   launchAtLogin: false,
   showMenubarIcon: true,
@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS: DesktopSettings = {
   keepClipboardResults: false,
   filePlacement: "same-folder",
   outputFolder: "",
-  outputSuffix: "-piclite",
+  outputSuffix: "-zizhuge",
   renameTemplate: "{name}{suffix}",
   preserveDates: true,
   autoCleanupEnabled: false,
@@ -41,7 +41,7 @@ export const DEFAULT_SETTINGS: DesktopSettings = {
   floatingHeight: 230,
   floatingActions: ["downscale", "watermark", "undo", "copy", "preview", "reveal"],
   floatingWatermark: {
-    text: "PicLite",
+    text: "紫竹轻图",
     fontFamily: "Microsoft YaHei",
     fontScale: 4.5,
     color: "#ffffff",
@@ -141,6 +141,8 @@ export function loadSettings(): DesktopSettings {
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,
+      // 品牌改名迁移：旧默认后缀 -piclite 自动换成新的
+      outputSuffix: !parsed.outputSuffix || parsed.outputSuffix === "-piclite" ? DEFAULT_SETTINGS.outputSuffix : parsed.outputSuffix,
       appearance: validAppearance(mainPreferences.theme) ? mainPreferences.theme : validAppearance(parsed.appearance) ? parsed.appearance : DEFAULT_SETTINGS.appearance,
       colorTheme: validColorTheme(mainPreferences.colorTheme) ? mainPreferences.colorTheme : validColorTheme(parsed.colorTheme) ? parsed.colorTheme : DEFAULT_SETTINGS.colorTheme,
       showInTaskbarDock: typeof mainPreferences.showInTaskbarDock === "boolean" ? mainPreferences.showInTaskbarDock : parsed.showInTaskbarDock ?? DEFAULT_SETTINGS.showInTaskbarDock,
@@ -167,7 +169,7 @@ export function loadSettings(): DesktopSettings {
       watchProfiles: Array.isArray(parsed.watchProfiles) ? parsed.watchProfiles : (parsed.watchFolders || []).map((path, index) => ({
         id: `migrated-${index}`, name: fileName(path), enabled: true,
         inputFolder: userFacingPath(path), inputFolders: [], outputFolder: parsed.filePlacement === "fixed-folder" ? parsed.outputFolder || "" : "@same-folder",
-        outputSuffix: parsed.outputSuffix || "-piclite", renameTemplate: parsed.renameTemplate || "{name}{suffix}",
+        outputSuffix: parsed.outputSuffix || "-zizhuge", renameTemplate: parsed.renameTemplate || "{name}{suffix}",
         mode: preset.mode === "auto" ? "balanced" : "manual", quality: preset.quality, scale: preset.scale,
         format: toNativeFormat(preset.format), resize: false, resizeMode: "shrink", maxWidth: 1920, maxHeight: 1920,
         stripMetadata: preset.stripMetadata, preventLarger: preset.preventLarger, onlyWhenNeeded: false, notifyOnComplete: true, showFloatingResult: false,

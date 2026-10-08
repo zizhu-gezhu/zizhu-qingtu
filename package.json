@@ -1,16 +1,15 @@
 {
-  "name": "piclite",
-  "version": "1.8.9",
-  "releaseDate": "2026-10-02",
-  "description": "本地优先、可自托管的跨平台图片与 GIF 压缩工作台",
+  "name": "zizhu-qingtu",
+  "version": "1.0.0",
+  "releaseDate": "2026-10-08",
+  "description": "紫竹轻图 —— 本地优先的图片压缩与格式转换工具（基于 PicLite，GPL-3.0-or-later）",
   "author": {
-    "name": "PicLite contributors",
-    "email": "amiaoapp@users.noreply.github.com"
+    "name": "紫竹阁主"
   },
-  "homepage": "https://github.com/amiaoapp/PicLite",
+  "homepage": "https://github.com/zizhu-gezhu/zizhu-qingtu",
   "repository": {
     "type": "git",
-    "url": "https://github.com/amiaoapp/PicLite.git"
+    "url": "https://github.com/zizhu-gezhu/zizhu-qingtu.git"
   },
   "private": true,
   "engines": {

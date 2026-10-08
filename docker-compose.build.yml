@@ -1,5 +1,5 @@
 services:
-  piclite:
+  zizhu-qingtu:
     build:
       context: .
-    image: piclite:local
+    image: zizhu-qingtu:local

@@ -42,15 +42,15 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${{ github.repository_owner }}/piclite
+          images: ghcr.io/${{ github.repository_owner }}/zizhu-qingtu
           tags: |
             type=raw,value=latest
             type=raw,value=${{ inputs.version }},enable=${{ inputs.version != '' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
           labels: |
-            org.opencontainers.image.title=PicLite
-            org.opencontainers.image.description=PicLite self-hosted web application
+            org.opencontainers.image.title=ZizhuQingTu
+            org.opencontainers.image.description=ZizhuQingTu self-hosted web application
 
       - name: Build and push multi-platform image
         uses: docker/build-push-action@v7

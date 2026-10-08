@@ -1,13 +1,13 @@
 [package]
-name = "piclite"
-version = "1.8.9"
-description = "PicLite local-first image compressor"
-authors = ["PicLite contributors"]
+name = "zizhu-qingtu"
+version = "1.0.0"
+description = "ZizhuQingTu - local-first image compressor (based on PicLite by amiaoapp, GPL-3.0-or-later)"
+authors = ["紫竹阁主"]
 edition = "2021"
 license = "GPL-3.0-or-later"
 
 [lib]
-name = "piclite_lib"
+name = "zizhu_qingtu_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

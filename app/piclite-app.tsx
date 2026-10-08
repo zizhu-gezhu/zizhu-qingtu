@@ -34,12 +34,10 @@ type UpdateCheckFrequency = "startup" | "daily" | "weekly" | "never";
 type UiDensity = "auto" | "comfortable" | "compact";
 type ShortcutPreferenceKey = "shortcutShow" | "shortcutPaste" | "shortcutDock" | "shortcutGallery" | "shortcutUpload";
 type DockLayout = "compact" | "full";
-type PreferenceSection = "rename" | "general" | "clipboard" | "files" | "images" | "dropzone" | "floating" | "hosting" | "plugins" | "shortcuts" | "about" | "sponsor";
+type PreferenceSection = "rename" | "general" | "clipboard" | "files" | "images" | "dropzone" | "floating" | "hosting" | "plugins" | "shortcuts" | "about";
 
 const APP_VERSION = packageManifest.version;
 const APP_RELEASE_DATE = packageManifest.releaseDate;
-const LAST_UPDATE_CHECK_KEY = "piclite.update.last-checked.v1";
-const GITHUB_RELEASES_URL = "https://github.com/amiaoapp/PicLite/releases/latest";
 
 type UpdateInfo = {
   currentVersion: string;
@@ -232,7 +230,6 @@ type NativeBridge = {
   onClipboardImage: (callback: (data: Uint8Array) => void) => () => void;
   onClipboardPaths: (callback: (paths: string[]) => void) => () => void;
   onWindowResized: (callback: (size: { width: number; height: number }) => void) => () => void;
-  checkForUpdates: () => Promise<UpdateInfo>;
   fetchPluginSource: (url: string) => Promise<string>;
   openExternal: (url: string) => Promise<void>;
 };
@@ -698,7 +695,7 @@ const DEFAULT_SETTINGS: CompressionSettings = {
   watermark: {
     enabled: false,
     kind: "text",
-    text: "PicLite",
+    text: "紫竹轻图",
     imageDataUrl: "",
     imageName: "",
     imageScale: 18,
@@ -720,13 +717,13 @@ const DEFAULT_SETTINGS: CompressionSettings = {
 
 const DEFAULT_DESKTOP_PREFERENCES: DesktopPreferences = {
   exportMode: "same-folder",
-  exportSuffix: "-piclite",
+  exportSuffix: "-zizhuge",
   exportFolder: "",
   renameTemplate: "{name}{suffix}",
   confirmOverwrite: true,
   preventLarger: true,
   theme: "system",
-  colorTheme: "graphite",
+  colorTheme: "green",
   dockTheme: "system",
   density: "auto",
   minimizeToTray: true,
@@ -782,7 +779,13 @@ function loadStoredDesktopPreferences(): DesktopPreferences {
     const updateCheckFrequency: UpdateCheckFrequency = ["startup", "daily", "weekly", "never"].includes(preferences.updateCheckFrequency)
       ? preferences.updateCheckFrequency
       : preferences.autoCheckUpdates === false ? "never" : "startup";
-    return { ...preferences, colorTheme, updateCheckFrequency, autoCheckUpdates: updateCheckFrequency !== "never", dockLayout: preferences.dockLayout === "full" ? "full" : "compact", language: preferences.language === "en" ? "en" : "zh" };
+    // 品牌改名迁移：旧默认后缀 -piclite 自动换成新的
+    const exportSuffix = !preferences.exportSuffix || preferences.exportSuffix === "-piclite" ? DEFAULT_DESKTOP_PREFERENCES.exportSuffix : preferences.exportSuffix;
+    // 把修正后的值写回本地，避免每次都靠迁移
+    if (exportSuffix !== preferences.exportSuffix) {
+      try { window.localStorage.setItem("piclite.desktopPreferences.v1", JSON.stringify({ ...preferences, exportSuffix })); } catch { /* ignore */ }
+    }
+    return { ...preferences, exportSuffix, colorTheme, updateCheckFrequency, autoCheckUpdates: updateCheckFrequency !== "never", dockLayout: preferences.dockLayout === "full" ? "full" : "compact", language: preferences.language === "en" ? "en" : "zh" };
   } catch {
     return DEFAULT_DESKTOP_PREFERENCES;
   }
@@ -1027,7 +1030,7 @@ async function isAnimatedWebPFile(file: File) {
   return false;
 }
 
-function outputName(item: ImageItem, suffix = "-piclite", template = "{name}{suffix}") {
+function outputName(item: ImageItem, suffix = "-zizhuge", template = "{name}{suffix}") {
   const base = item.name.replace(/\.[^.]+$/, "");
   const extension = outputExtension(item.outputType || item.type, item.name);
   const now = new Date();
@@ -1050,7 +1053,7 @@ function outputName(item: ImageItem, suffix = "-piclite", template = "{name}{suf
 function cleanSuffix(value: string) {
   const forbidden = '<>:"/\\|?*';
   const safe = Array.from(value.trim(), (character) => character.charCodeAt(0) < 32 || forbidden.includes(character) ? "-" : character).join("").replace(/\.+$/g, "");
-  if (!safe) return "-piclite";
+  if (!safe) return "-zizhuge";
   return safe.startsWith("-") || safe.startsWith("_") ? safe : `-${safe}`;
 }
 
@@ -1394,7 +1397,7 @@ async function canvasCompress(item: ImageItem, settings: CompressionSettings, na
     const converted = await nativeBridge.compressImageData(
       new Uint8Array(await png.arrayBuffer()),
       item.name.replace(/\.[^.]+$/, ".png"),
-      { mode: "manual", quality: settings.quality, scale: 100, format: "image/webp", stripMetadata: true, preventLarger: false, exportMode: "same-folder", exportSuffix: "-piclite" },
+      { mode: "manual", quality: settings.quality, scale: 100, format: "image/webp", stripMetadata: true, preventLarger: false, exportMode: "same-folder", exportSuffix: "-zizhuge" },
     );
     result = new Blob([new Uint8Array(converted.data)], { type: converted.mimeType });
   } else {
@@ -1529,7 +1532,7 @@ async function compressImageBase(item: ImageItem, settings: CompressionSettings,
     throw new Error("动态 WebP 只能保持 WebP 格式；已停止处理以避免动画被压成静态图");
   }
   if (animatedWebP && !nativeBridge) {
-    throw new Error("动态 WebP 压缩需要 PicLite 桌面客户端；网页端不会将动画压成静态图");
+    throw new Error("动态 WebP 压缩需要紫竹轻图桌面客户端；网页端不会将动画压成静态图");
   }
   const nativeAnimation = item.type === "image/gif" || animatedWebP;
   if (nativeBridge && hasWatermark(settings.watermark) && (animatedWebP || item.type === "image/gif")) {
@@ -1553,7 +1556,7 @@ async function compressImageBase(item: ImageItem, settings: CompressionSettings,
         stripMetadata: settings.stripMetadata,
         preventLarger: false,
         exportMode: "same-folder",
-        exportSuffix: "-piclite",
+        exportSuffix: "-zizhuge",
       },
       {
         kind: settings.watermark.kind === "blind" ? "blind" : "visible",
@@ -1583,7 +1586,7 @@ async function compressImageBase(item: ImageItem, settings: CompressionSettings,
         stripMetadata: settings.stripMetadata,
         preventLarger: settings.preventLarger,
         exportMode: "same-folder",
-        exportSuffix: "-piclite",
+        exportSuffix: "-zizhuge",
       },
     );
     return {
@@ -1595,13 +1598,13 @@ async function compressImageBase(item: ImageItem, settings: CompressionSettings,
     };
   }
   if (item.type === "image/gif" && settings.format === "image/webp") {
-    throw new Error("动态 WebP 转换需要 PicLite 桌面客户端；网页端会保留 GIF 动画");
+    throw new Error("动态 WebP 转换需要紫竹轻图桌面客户端；网页端会保留 GIF 动画");
   }
   if (nativeBridge && item.type !== "image/gif" && settings.watermark.enabled && settings.watermark.kind === "image" && settings.watermark.imageDataUrl) {
     const result = await nativeBridge.compressImageWithWatermarkData(
       new Uint8Array(await item.file.arrayBuffer()),
       item.name,
-      { mode: "manual", quality: settings.quality, scale: settings.scale, format: settings.format, stripMetadata: settings.stripMetadata, preventLarger: false, exportMode: "same-folder", exportSuffix: "-piclite" },
+      { mode: "manual", quality: settings.quality, scale: settings.scale, format: settings.format, stripMetadata: settings.stripMetadata, preventLarger: false, exportMode: "same-folder", exportSuffix: "-zizhuge" },
       {
         data: settings.watermark.imageDataUrl.split(",", 2)[1] || "",
         imageScale: settings.watermark.imageScale,
@@ -1632,7 +1635,7 @@ async function compressImageBase(item: ImageItem, settings: CompressionSettings,
         stripMetadata: settings.stripMetadata,
         preventLarger: settings.preventLarger,
         exportMode: "same-folder",
-        exportSuffix: "-piclite",
+        exportSuffix: "-zizhuge",
       },
     );
     return {
@@ -1821,7 +1824,7 @@ async function createDemoFile() {
   context.globalAlpha = 1;
   context.fillStyle = "#f5ffe0";
   context.font = "700 138px Arial";
-  context.fillText("PicLite", 120, 860);
+  context.fillText("紫竹轻图", 120, 860);
   context.fillStyle = "#132119";
   context.font = "600 46px Arial";
   context.fillText("清晰，轻一点。", 125, 945);
@@ -2236,7 +2239,7 @@ function TrayDropDock({ bridge }: { bridge: NativeBridge }) {
   return (
     <main className={`drop-dock clop-dock layout-${dockLayout} ${results.length ? "has-results" : "is-idle"} ${isDragging ? "dragging" : ""}`} onPointerEnter={clearAutoHide} onPointerLeave={scheduleAutoHide}>
       <header onPointerDown={startDockDrag}>
-        <span className="dock-brand"><i>✦</i><b>{results.length ? dt("压缩结果", "Result") : "PicLite"}</b></span>
+        <span className="dock-brand"><i>✦</i><b>{results.length ? dt("压缩结果", "Result") : "紫竹轻图"}</b></span>
         <span className="dock-actions" onPointerDown={(event) => event.stopPropagation()}>
           <button type="button" title={dt("切换明暗主题", "Toggle appearance")} onClick={toggleDockTheme}>{resolveTheme(dockTheme) === "dark" ? "☀" : "☾"}</button>
           <button type="button" title={dt("打开主窗口", "Open main window")} onClick={() => void bridge.showMainWindow()}>↗</button>
@@ -2347,7 +2350,6 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
   const [importProgress, setImportProgress] = useState<{ current: number; total: number } | null>(null);
   const [exporting, setExporting] = useState(false);
   const [desktopPreferences, setDesktopPreferences] = useState<DesktopPreferences>(loadStoredDesktopPreferences);
-  const autoUpdateCheckStartedRef = useRef(false);
   const [recordingShortcut, setRecordingShortcut] = useState<ShortcutPreferenceKey | null>(null);
   const [preferenceSection, setPreferenceSection] = useState<PreferenceSection>("general");
   const [workspacePlugins, setWorkspacePlugins] = useState<WorkspacePlugin[]>(loadWorkspacePlugins);
@@ -2384,9 +2386,6 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
   const [uploadSecret, setUploadSecret] = useState("");
   const [uploadProfileSaved, setUploadProfileSaved] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
-  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
-  const [checkingUpdate, setCheckingUpdate] = useState(false);
-  const [downloadGuideVisible, setDownloadGuideVisible] = useState(true);
   const [browserPlatform, setBrowserPlatform] = useState<BrowserPlatform>("generic");
   const [nativeProfileReady, setNativeProfileReady] = useState(() => !nativeBridge);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -2446,11 +2445,6 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
     return () => document.documentElement.classList.remove("desktop-root");
   }, [nativeBridge]);
 
-  useEffect(() => {
-    if (!nativeBridge && window.localStorage.getItem("piclite.desktopDownloadGuide.dismissed") === "1") {
-      setDownloadGuideVisible(false);
-    }
-  }, [nativeBridge]);
 
   useEffect(() => {
     if (!nativeBridge) setBrowserPlatform(detectBrowserPlatform());
@@ -2507,46 +2501,8 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
     window.setTimeout(() => setToast(null), 2600);
   }, []);
 
-  const checkForUpdates = useCallback(async (manual = false) => {
-    if (!nativeBridge) return;
-    setCheckingUpdate(true);
-    try {
-      const next = await nativeBridge.checkForUpdates();
-      window.localStorage.setItem(LAST_UPDATE_CHECK_KEY, String(Date.now()));
-      setUpdateInfo(next);
-      if (next.available) showToast(t(`发现 PicLite ${next.latestVersion}，可以更新了`, `PicLite ${next.latestVersion} is available`));
-      else if (manual) showToast(t(`当前 ${APP_VERSION} 已是最新版`, `PicLite ${APP_VERSION} is up to date`));
-    } catch (error) {
-      if (manual) showToast(error instanceof Error ? error.message : t("暂时无法检查更新", "Could not check for updates"));
-    } finally {
-      setCheckingUpdate(false);
-    }
-  }, [nativeBridge, showToast, t]);
 
-  const openReleasePage = useCallback((url = updateInfo?.releaseUrl || GITHUB_RELEASES_URL) => {
-    if (nativeBridge) void nativeBridge.openExternal(url).catch(() => showToast(t("无法打开下载页面", "Could not open the download page")));
-    else window.open(url, "_blank", "noopener,noreferrer");
-  }, [nativeBridge, showToast, t, updateInfo?.releaseUrl]);
 
-  const dismissDownloadGuide = useCallback(() => {
-    setDownloadGuideVisible(false);
-    window.localStorage.setItem("piclite.desktopDownloadGuide.dismissed", "1");
-  }, []);
-
-  useEffect(() => {
-    if (!nativeBridge || autoUpdateCheckStartedRef.current) return;
-    const frequency = desktopPreferences.updateCheckFrequency;
-    if (frequency === "never") return;
-    const lastChecked = Number(window.localStorage.getItem(LAST_UPDATE_CHECK_KEY) || 0);
-    const elapsed = Date.now() - lastChecked;
-    const due = frequency === "startup"
-      || (frequency === "daily" && elapsed >= 24 * 60 * 60 * 1000)
-      || (frequency === "weekly" && elapsed >= 7 * 24 * 60 * 60 * 1000);
-    if (!due) return;
-    autoUpdateCheckStartedRef.current = true;
-    const timer = window.setTimeout(() => void checkForUpdates(false), 1400);
-    return () => window.clearTimeout(timer);
-  }, [checkForUpdates, desktopPreferences.updateCheckFrequency, nativeBridge]);
 
   const refreshGallery = useCallback(async () => {
     try {
@@ -3228,7 +3184,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
       showToast(t("覆盖源文件时请将输出格式设为“保持原格式”", "Select Keep original format before replacing source files"));
       return;
     }
-    if (effectiveExportMode === "overwrite" && (!nativeBridge || desktopPreferences.confirmOverwrite) && !window.confirm(t("确认覆盖源图片？该操作无法在 PicLite 中撤销。", "Replace the source images? PicLite cannot undo this action."))) return;
+    if (effectiveExportMode === "overwrite" && (!nativeBridge || desktopPreferences.confirmOverwrite) && !window.confirm(t("确认覆盖源图片？该操作无法在紫竹轻图中撤销。", "Replace the source images? ZizhuQingTu cannot undo this action."))) return;
 
     setExporting(true);
     try {
@@ -3357,7 +3313,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
       if (next) await enableAutostart();
       else await disableAutostart();
       setDesktopPreferences((current) => ({ ...current, launchAtStartup: next }));
-      showToast(next ? t("已开启开机自启动，将静默进入系统托盘", "Launch at login enabled; PicLite will start quietly in the tray") : t("已关闭开机自启动", "Launch at login disabled"));
+      showToast(next ? t("已开启开机自启动，将静默进入系统托盘", "Launch at login enabled; ZizhuQingTu will start quietly in the tray") : t("已关闭开机自启动", "Launch at login disabled"));
     } catch {
       showToast(t("开机自启动设置失败，请检查系统权限", "Could not change launch-at-login settings; check system permissions"));
     }
@@ -3471,7 +3427,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
         const face = new FontFace(family, source);
         await face.load();
         document.fonts.add(face);
-        await document.fonts.load(`16px "${localName}"`, "PicLite 图轻 123");
+        await document.fonts.load(`16px "${localName}"`, "紫竹轻图 123");
         await document.fonts.ready;
         loadedSystemFontsRef.current.add(family);
       }
@@ -3761,10 +3717,6 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
     if (!pendingTrayAction) return;
     const action = pendingTrayAction;
     setPendingTrayAction(null);
-    if (action === "check_updates") {
-      void checkForUpdates(true);
-      return;
-    }
     if (action === "preferences") {
       void nativeBridge?.showPreferencesWindow();
       return;
@@ -3798,7 +3750,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
     }
     const preset = presets.find((candidate) => candidate.id === presetId);
     if (preset) applyPreset(preset);
-  }, [applyPreset, checkForUpdates, nativeBridge, pendingTrayAction, presets, showToast, t]);
+  }, [applyPreset, nativeBridge, pendingTrayAction, presets, showToast, t]);
 
   const onDrop = useCallback((event: DragEvent<HTMLElement>) => {
     event.preventDefault();
@@ -3873,9 +3825,8 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
         <div className="brand">
           <button className="brand-home" type="button" onClick={() => standalonePreferences ? void nativeBridge?.hideCurrentWindow() : setView("workspace")}>
             <span className="brand-mark" aria-hidden="true"><i /><i /><i /><i /></span>
-            <span><strong>PicLite</strong><small>{desktopPreferences.language === "zh" ? "图轻" : "Image Optimiser"}</small></span>
+            <span><strong>紫竹轻图</strong><small>{desktopPreferences.language === "zh" ? "轻一点" : "Image Optimiser"}</small></span>
           </button>
-          {nativeBridge && <button className="brand-version" type="button" title={t("检查更新并显示结果", "Check for updates and show the result")} aria-label={t(`当前版本 ${APP_VERSION}，检查更新`, `Version ${APP_VERSION}; check for updates`)} disabled={checkingUpdate} onClick={() => void checkForUpdates(true)}>v{APP_VERSION}</button>}
         </div>
         {standalonePreferences ? <div className="standalone-window-title"><span className="eyebrow">PREFERENCES</span><strong>{t("应用设置", "Preferences")}</strong></div> : <nav className="main-nav" aria-label={t("主要功能", "Main navigation")}>
           <button className={view === "workspace" ? "active" : ""} type="button" onClick={() => setView("workspace")}>{t(nativeBridge ? "工作台" : "压缩工作台", "Workspace")}</button>
@@ -3887,22 +3838,11 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
           {workspacePlugins.filter((plugin) => plugin.kind !== "builtin" && plugin.enabled).map((plugin) => <button key={plugin.id} className={view === `plugin:${plugin.id}` ? "active" : ""} type="button" onClick={() => setView(`plugin:${plugin.id}`)}>{desktopPreferences.language === "zh" ? plugin.nameZh : plugin.nameEn}</button>)}
         </nav>}
         <div className="topbar-actions">
-          {standalonePreferences ? <IconButton label={t("关闭设置窗口", "Close preferences")} symbol="×" onClick={() => void nativeBridge?.hideCurrentWindow()} /> : <>{!nativeBridge && <span className="privacy-badge"><i /> {t("本地处理，图片不上传", "Local processing")}</span>}<span className="topbar-quick-controls">{nativeBridge && <button type="button" className="sponsor-entry-button" title={t("赞助支持", "Support PicLite")} aria-label={t("打开赞助支持", "Open support options")} onClick={() => void nativeBridge.showPreferencesWindow("sponsor")}><span aria-hidden="true">♥</span></button>}{nativeBridge && <button type="button" className="settings-entry-button" title={t("打开设置", "Open settings")} aria-label={t("打开设置", "Open settings")} onClick={() => void nativeBridge.showPreferencesWindow("general")}><span aria-hidden="true">⚙</span></button>}{nativeBridge && <button type="button" className="floating-entry-button" title={t("打开悬浮压缩窗", "Open floating optimiser")} aria-label={t("打开悬浮压缩窗", "Open floating optimiser")} onClick={() => void nativeBridge.showDropzoneWindow()}><span aria-hidden="true">▣</span></button>}<button type="button" title={t("切换浅色 / 深色主题", "Toggle light / dark theme")} aria-label={t("切换主题", "Toggle theme")} onClick={toggleHeaderTheme}>{resolveTheme(desktopPreferences.theme) === "dark" ? "☀" : "☾"}</button><button type="button" title={t("切换中文 / English", "Switch Chinese / English")} aria-label={t("切换语言", "Switch language")} onClick={toggleHeaderLanguage}>{desktopPreferences.language === "zh" ? "EN" : "中"}</button></span></>}
+          {standalonePreferences ? <IconButton label={t("关闭设置窗口", "Close preferences")} symbol="×" onClick={() => void nativeBridge?.hideCurrentWindow()} /> : <>{!nativeBridge && <span className="privacy-badge"><i /> {t("本地处理，图片不上传", "Local processing")}</span>}<span className="topbar-quick-controls">{nativeBridge && null}{nativeBridge && <button type="button" className="settings-entry-button" title={t("打开设置", "Open settings")} aria-label={t("打开设置", "Open settings")} onClick={() => void nativeBridge.showPreferencesWindow("general")}><span aria-hidden="true">⚙</span></button>}{nativeBridge && <button type="button" className="floating-entry-button" title={t("打开悬浮压缩窗", "Open floating optimiser")} aria-label={t("打开悬浮压缩窗", "Open floating optimiser")} onClick={() => void nativeBridge.showDropzoneWindow()}><span aria-hidden="true">▣</span></button>}<button type="button" title={t("切换浅色 / 深色主题", "Toggle light / dark theme")} aria-label={t("切换主题", "Toggle theme")} onClick={toggleHeaderTheme}>{resolveTheme(desktopPreferences.theme) === "dark" ? "☀" : "☾"}</button><button type="button" title={t("切换中文 / English", "Switch Chinese / English")} aria-label={t("切换语言", "Switch language")} onClick={toggleHeaderLanguage}>{desktopPreferences.language === "zh" ? "EN" : "中"}</button></span></>}
         </div>
       </header>
 
-      {!nativeBridge && downloadGuideVisible && <aside className="desktop-download-guide" aria-label={t("PicLite 桌面端下载引导", "Download PicLite for desktop")}>
-        <span className="download-mark brand-mark" aria-hidden="true"><i /><i /><i /><i /></span>
-        <span><strong>{t("桌面端可以监测文件夹和剪贴板", "Watch folders and the clipboard on desktop")}</strong><small>{t("已识别当前系统，可在本机后台自动压缩图片。", "PicLite can optimise images automatically in the background on this device.")}</small></span>
-        <button className="download-guide-primary" type="button" onClick={() => openReleasePage()}>{browserDownloadLabel(desktopPreferences.language, browserPlatform)}</button>
-        <button className="download-guide-close" type="button" aria-label={t("关闭桌面端下载引导", "Dismiss desktop download guide")} onClick={dismissDownloadGuide}>×</button>
-      </aside>}
 
-      {nativeBridge && updateInfo?.available && <aside className="update-notice" role="status">
-        <span>↑</span><p><strong>{t(`PicLite ${updateInfo.latestVersion} 已发布`, `PicLite ${updateInfo.latestVersion} is available`)}</strong><small>{t(`当前版本 ${APP_VERSION}，建议更新后继续使用。`, `You are using ${APP_VERSION}. Update to get the latest fixes.`)}</small></p>
-        <button type="button" onClick={() => openReleasePage(updateInfo.releaseUrl)}>{t("查看更新", "View update")}</button>
-        <button className="update-notice-close" type="button" aria-label={t("暂时关闭更新提醒", "Dismiss update notice")} onClick={() => setUpdateInfo(null)}>×</button>
-      </aside>}
 
       {view === "workspace" ? (
         <section className="workspace" aria-label={t("图片压缩工作台", "Image compression workspace")}>
@@ -4103,7 +4043,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
                 {[0, 200, 100, 50].map((size) => <button className={settings.targetSizeKb === size ? "active" : ""} type="button" key={size} onClick={() => setSettings((current) => ({ ...current, targetSizeKb: size }))}>{size ? `${size} KB` : t("不限", "Unlimited")}</button>)}
               </div>
               <label className="target-size-custom" htmlFor="target-size-input"><span>{t("自定义上限", "Custom limit")}</span><input id="target-size-input" type="number" inputMode="numeric" min="1" max="102400" step="1" value={settings.targetSizeKb || ""} placeholder={t("输入大小", "Enter size")} onChange={(event) => setSettings((current) => ({ ...current, targetSizeKb: event.target.value ? Math.max(1, Math.min(102400, Math.round(Number(event.target.value)))) : 0 }))} /><b>KB</b></label>
-              <p className="setting-hint"><i /> {t("会按真实编码结果逐步调整画质；仍超出上限时再等比例缩小尺寸。原图已符合上限且没有其他改动时会直接保留。", "PicLite measures real encoded output and adjusts quality first, then scales dimensions only if needed. An already-compliant original is kept when no other changes are requested.")}</p>
+              <p className="setting-hint"><i /> {t("会按真实编码结果逐步调整画质；仍超出上限时再等比例缩小尺寸。原图已符合上限且没有其他改动时会直接保留。", "ZizhuQingTu measures real encoded output and adjusts quality first, then scales dimensions only if needed. An already-compliant original is kept when no other changes are requested.")}</p>
             </div>
 
             <div className="setting-section slider-section">
@@ -4191,7 +4131,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
             <div className="setting-section export-settings">
               <label className="setting-label" htmlFor="export-mode">{t("导出位置", "Export location")}</label>
               <div className="select-wrap"><select id="export-mode" value={exportMode} onChange={(event) => { const mode = event.target.value as ExportMode; setExportMode(mode); if (nativeBridge && mode !== "download") setDesktopPreferences((current) => ({ ...current, exportMode: mode })); }}>{!nativeBridge && <option value="download">{t("浏览器下载", "Browser download")}</option>}<option value="overwrite">{t("覆盖源文件", "Replace original")}</option><option value="same-folder">{t("原文件夹重命名", "Rename in original folder")}</option><option value="fixed-folder">{t("固定文件夹", "Fixed folder")}</option></select></div>
-              {exportMode !== "overwrite" && <label className="suffix-input">{t("文件名后缀", "Filename suffix")}<input value={exportSuffix} onChange={(event) => { const value = event.target.value; setExportSuffix(value); if (nativeBridge) setDesktopPreferences((current) => ({ ...current, exportSuffix: value })); }} placeholder="-piclite" /></label>}
+              {exportMode !== "overwrite" && <label className="suffix-input">{t("文件名后缀", "Filename suffix")}<input value={exportSuffix} onChange={(event) => { const value = event.target.value; setExportSuffix(value); if (nativeBridge) setDesktopPreferences((current) => ({ ...current, exportSuffix: value })); }} placeholder="-zizhuge" /></label>}
               {(exportMode === "fixed-folder" || (!nativeBridge && exportMode === "same-folder")) && <button className="folder-picker-button" type="button" onClick={chooseExportFolder}><span>⌑</span><strong>{exportFolderName || (exportMode === "same-folder" ? t("授权原文件夹", "Authorise original folder") : t("选择固定文件夹", "Choose fixed folder"))}</strong><b>{t("选择", "Choose")}</b></button>}
               <p className={`setting-hint ${exportMode === "overwrite" ? "warning" : ""}`}>{exportMode === "download" && t("使用浏览器下载，不需要文件夹权限。", "Downloads through the browser and requires no folder permission.")}{exportMode === "overwrite" && t("会直接替换原图且无法撤销；仅支持保持原格式，并要求从“添加图片”导入。", "Replaces originals and cannot be undone. This requires keeping the original format and importing with Add images.")}{exportMode === "same-folder" && (nativeBridge ? t("桌面端会在每张源图旁输出重命名文件。", "The desktop app saves a renamed result next to each source image.") : t("网页无法自动获知父文件夹，需要手动授权一次目标文件夹。", "The web app needs one-time permission for the destination folder."))}{exportMode === "fixed-folder" && t("所有处理结果写入指定文件夹。", "All results are written to the selected folder.")}</p>
             </div>
@@ -4212,7 +4152,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
           <div className="watcher-intro">
             <span className="section-index">02 / AUTO FLOW</span>
             <h1>{t("放进文件夹，", "Drop into a folder,")}<br />{t("自动", "automatically ")}<span>{t("变轻。", "optimised.")}</span></h1>
-            <p>{t("PicLite 会静默监测新图片，优化后写入指定位置，源文件默认保持不变。", "PicLite quietly watches for new images, optimises them and writes results to the chosen location. Originals stay untouched by default.")}</p>
+            <p>{t("紫竹轻图会静默监测新图片，优化后写入指定位置，源文件默认保持不变。", "ZizhuQingTu quietly watches for new images, optimises them and writes results to the chosen location. Originals stay untouched by default.")}</p>
             <div className="watcher-platform"><span className={nativeBridge ? "available" : ""}>{nativeBridge ? t(`● ${desktopPlatform} 客户端已连接`, `● ${desktopPlatform} app connected`) : t("◫ 需要桌面客户端", "◫ Desktop app required")}</span><small>{t("网页端受浏览器安全限制，无法持续读取本地文件夹", "Browsers cannot continuously watch local folders due to security restrictions")}</small></div>
           </div>
 
@@ -4232,13 +4172,13 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
               </button>
               <div className="route-line"><i /><i /><i /><span>{t("自动优化", "Auto optimise")}</span></div>
               <button type="button" onClick={() => chooseFolder("output")} disabled={!nativeBridge}>
-                <span className="folder-icon output">⌑</span><small>{t("输出文件夹", "Output folder")}</small><strong>{watcherSettings.outputFolder === "@same-folder" ? t("每张原图所在文件夹", "Each source image folder") : watcherSettings.outputFolder || t("默认：来源/PicLite", "Default: Source/PicLite")}</strong><b>{t("选择", "Choose")}</b>
+                <span className="folder-icon output">⌑</span><small>{t("输出文件夹", "Output folder")}</small><strong>{watcherSettings.outputFolder === "@same-folder" ? t("每张原图所在文件夹", "Each source image folder") : watcherSettings.outputFolder || t("默认：来源/紫竹轻图", "Default: Source/ZizhuQingTu")}</strong><b>{t("选择", "Choose")}</b>
               </button>
             </div>
 
             <div className="watcher-options">
               <label className="watcher-task-name"><span>{t("任务名称", "Task name")}</span><input type="text" value={watchProfileName} maxLength={40} disabled={!nativeBridge} placeholder={watcherSettings.inputFolder.split(/[\\/]/).filter(Boolean).pop() || t("例如：桌面截图", "For example: Desktop screenshots")} onChange={(event) => setWatchProfileName(event.target.value)} /></label>
-              <label><span>{t("保存位置", "Save results to")}</span><select value={watcherSettings.outputFolder === "@same-folder" ? "same-folder" : watcherSettings.outputFolder ? "fixed-folder" : "subfolder"} disabled={!nativeBridge} onChange={(event) => void setWatcherOutputPlacement(event.target.value as "subfolder" | "same-folder" | "fixed-folder")}><option value="same-folder">{t("每张原图所在文件夹", "Each source image folder")}</option><option value="subfolder">{t("监测根目录下的 PicLite 文件夹", "PicLite folder under the watch root")}</option><option value="fixed-folder">{t("指定固定文件夹", "A fixed folder")}</option></select></label>
+              <label><span>{t("保存位置", "Save results to")}</span><select value={watcherSettings.outputFolder === "@same-folder" ? "same-folder" : watcherSettings.outputFolder ? "fixed-folder" : "subfolder"} disabled={!nativeBridge} onChange={(event) => void setWatcherOutputPlacement(event.target.value as "subfolder" | "same-folder" | "fixed-folder")}><option value="same-folder">{t("每张原图所在文件夹", "Each source image folder")}</option><option value="subfolder">{t("监测根目录下的紫竹轻图文件夹", "ZizhuQingTu folder under the watch root")}</option><option value="fixed-folder">{t("指定固定文件夹", "A fixed folder")}</option></select></label>
               <label><span>{t("压缩方案", "Optimisation mode")}</span><select value={watcherSettings.mode} disabled={!nativeBridge} onChange={(event) => {
                 const mode = event.target.value as CompressionMode;
                 const quality = mode === "lossless" ? 92 : mode === "balanced" ? 82 : 45;
@@ -4350,7 +4290,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
           {(() => { const plugin = workspacePlugins.find((item) => `plugin:${item.id}` === view); if (!plugin) return null; return <><header><div><span className="section-index">PLUGIN / TRUSTED RUNTIME</span><h1>{desktopPreferences.language === "zh" ? plugin.nameZh : plugin.nameEn}</h1></div><button type="button" onClick={() => { if (nativeBridge) void nativeBridge.showPreferencesWindow("plugins"); else { setPreferenceSection("plugins"); setView("preferences"); } }}>{t("管理插件", "Manage plugins")}</button></header><PluginRuntime plugin={plugin} bridge={nativeBridge} language={desktopPreferences.language} theme={resolveTheme(desktopPreferences.theme)} /></>; })()}
         </section>
       ) : (
-        <section className="preferences-page clop-preferences" aria-label={t("PicLite 应用设置", "PicLite preferences")}>
+        <section className="preferences-page clop-preferences" aria-label={t("紫竹轻图应用设置", "ZizhuQingTu preferences")}>
           <aside className="preferences-sidebar">
             <div className="preferences-sidebar-title"><span className="brand-mark" aria-hidden="true"><i /><i /><i /><i /></span><strong>{t("设置", "Settings")}</strong></div>
             <nav aria-label={t("设置分类", "Preference categories")}>
@@ -4367,7 +4307,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
                 ["about", "ⓘ", t("关于", "About")],
               ] as const).map(([value, icon, label]) => <button type="button" key={value} className={preferenceSection === value ? "active" : ""} onClick={() => setPreferenceSection(value)}><span>{icon}</span>{label}</button>)}
             </nav>
-            <small>PicLite {APP_VERSION}<br />Tauri 2 · Rust</small>
+            <small>紫竹轻图 {APP_VERSION}<br />Tauri 2 · Rust</small>
           </aside>
 
           <div className="preferences-content clop-preferences-content">
@@ -4382,7 +4322,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
                 </div>
               </div>
               {desktopPreferences.exportMode !== "overwrite" && <div className="preference-row">
-                <div><strong>{t("文件名后缀", "Filename suffix")}</strong><small>{t("例如 photo-piclite.jpg", "For example photo-piclite.jpg")}</small></div>
+                <div><strong>{t("文件名后缀", "Filename suffix")}</strong><small>{t("例如 photo-zizhuge.jpg", "For example photo-zizhuge.jpg")}</small></div>
                 <input className="preference-input" value={desktopPreferences.exportSuffix} onChange={(event) => setDesktopPreferences((current) => ({ ...current, exportSuffix: event.target.value }))} />
               </div>}
               {desktopPreferences.exportMode !== "overwrite" && <div className="preference-row">
@@ -4412,7 +4352,6 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
               <div className="preference-card-heading"><span>{preferenceSection === "floating" ? t("悬浮结果", "Floating Results") : t("外观与通用", "Appearance and general")}</span><small>{preferenceSection === "floating" ? t("外观与交互", "Appearance and behaviour") : t("窗口、系统与界面偏好", "Window, system and appearance preferences")}</small></div>
               {preferenceSection === "general" && <>
                 <label className="preference-row clickable"><div><strong>{t("在任务栏 / Dock 显示", "Show in taskbar / Dock")}</strong><small>{desktopPreferences.showInTaskbarDock ? t("开启后主窗口失焦不隐藏，可从任务栏或 Dock 随时切换回来", "Keep the main window visible after focus changes and return from the taskbar or Dock") : t("关闭后不占用任务栏或 Dock，主窗口失焦时隐藏到托盘 / 菜单栏", "Hide the main window to the tray or menu bar when it loses focus")}</small></div><button className={`switch ${desktopPreferences.showInTaskbarDock ? "on" : ""}`} type="button" role="switch" aria-checked={desktopPreferences.showInTaskbarDock} onClick={() => setDesktopPreferences((current) => ({ ...current, showInTaskbarDock: !current.showInTaskbarDock }))}><i /></button></label>
-                <div className="preference-row"><div><strong>{t("自动检查更新", "Automatic update checks")}</strong><small>{t("按设定频率检查 GitHub Releases；手动检查始终显示结果", "Check GitHub Releases at the selected interval; manual checks always show a result")}</small></div><select value={desktopPreferences.updateCheckFrequency} onChange={(event) => { const updateCheckFrequency = event.target.value as UpdateCheckFrequency; setDesktopPreferences((current) => ({ ...current, updateCheckFrequency, autoCheckUpdates: updateCheckFrequency !== "never" })); }}><option value="startup">{t("打开软件时", "When PicLite opens")}</option><option value="daily">{t("每天", "Daily")}</option><option value="weekly">{t("每周", "Weekly")}</option><option value="never">{t("不自动检查", "Never")}</option></select></div>
               </>}
               <div className="preference-row column">
                 <div><strong>{t("主题", "Appearance")}</strong><small>{t("可跟随 Windows / macOS 系统外观", "Can follow the Windows or macOS appearance")}</small></div>
@@ -4421,7 +4360,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
                 </div>
               </div>
               <div className="preference-row column">
-                <div><strong>{t("界面配色", "Colour theme")}</strong><small>{t("石墨蓝更清爽，也可以随时切回经典绿色", "Graphite is cleaner, and the classic green remains available")}</small></div>
+                <div><strong>{t("界面配色", "Colour theme")}</strong><small>{t("经典绿是默认品牌色，也可以切换其他配色", "Classic green is the default brand palette; others are available.")}</small></div>
                 <div className="palette-picker">
                   {([
                     ['graphite', t('石墨蓝', 'Graphite'), t('克制 · 清晰', 'Neutral · crisp')],
@@ -4432,7 +4371,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
                 </div>
               </div>
               <div className="preference-row column">
-                <div><strong>{t("语言 / Language", "Language / 语言")}</strong><small>{t("切换全部界面和常用操作的显示语言", "Switch the language used throughout PicLite")}</small></div>
+                <div><strong>{t("语言 / Language", "Language / 语言")}</strong><small>{t("切换全部界面和常用操作的显示语言", "Switch the language used throughout ZizhuQingTu")}</small></div>
                 <div className="preference-segments">
                   <button className={desktopPreferences.language === "zh" ? "active" : ""} type="button" onClick={() => setDesktopPreferences((current) => ({ ...current, language: "zh" }))}>中文</button>
                   <button className={desktopPreferences.language === "en" ? "active" : ""} type="button" onClick={() => setDesktopPreferences((current) => ({ ...current, language: "en" }))}>English</button>
@@ -4481,7 +4420,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
                 <label className="upload-field"><span>{t("远端目录", "Remote folder")}</span><input type="text" value={uploadSettings.remotePath} placeholder="piclite" onChange={(event) => setUploadSettings((current) => ({ ...current, remotePath: event.target.value }))} /></label>
                 <label className="upload-field wide"><span>{t("公开访问地址（可选）", "Public base URL (optional)")}</span><input type="text" value={uploadSettings.publicBaseUrl} placeholder="https://img.example.com" onChange={(event) => setUploadSettings((current) => ({ ...current, publicBaseUrl: event.target.value }))} /><small>{t("用于生成最终图片链接；留空则返回服务地址。", "Used to build the final image URL; leave blank to use the provider URL.")}</small></label>
               </div>
-              <div className="upload-save-row"><p className="upload-security-note"><span>◉</span> {t("配置和凭证保存在当前系统用户的 PicLite 配置目录，不会同步到云端。", "Configuration and credentials stay in the current user's PicLite config directory and are never synced.")}</p><button className="preference-action" type="button" disabled={!nativeBridge} onClick={() => void saveUploadProfile()}>{uploadProfileSaved ? t("✓ 已保存 · 再次保存", "✓ Saved · Save again") : t("保存到本机", "Save locally")}</button></div>
+              <div className="upload-save-row"><p className="upload-security-note"><span>◉</span> {t("配置和凭证保存在当前系统用户的紫竹轻图配置目录，不会同步到云端。", "Configuration and credentials stay in the current user's ZizhuQingTu config directory and are never synced.")}</p><button className="preference-action" type="button" disabled={!nativeBridge} onClick={() => void saveUploadProfile()}>{uploadProfileSaved ? t("✓ 已保存 · 再次保存", "✓ Saved · Save again") : t("保存到本机", "Save locally")}</button></div>
             </section>}
 
             {(preferenceSection === "general" || preferenceSection === "dropzone") && <section className="preference-card">
@@ -4501,7 +4440,7 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
               <div className="preference-card-heading"><span>{t("全局快捷键", "Keyboard shortcuts")}</span><small>{t("窗口隐藏后仍然有效", "Available while windows are hidden")}</small></div>
               <label className="preference-row clickable"><div><strong>{t("启用全局快捷键", "Enable global shortcuts")}</strong><small>{t("发生冲突时可以关闭或重新录制", "Disable or record another combination if a shortcut conflicts")}</small></div><button className={`switch ${desktopPreferences.shortcutsEnabled ? "on" : ""}`} type="button" role="switch" aria-checked={desktopPreferences.shortcutsEnabled} onClick={() => setDesktopPreferences((current) => ({ ...current, shortcutsEnabled: !current.shortcutsEnabled }))}><i /></button></label>
               {([
-                ["shortcutShow", t("显示主窗口", "Show main window"), t("从任何软件快速唤起 PicLite", "Open PicLite from any application")],
+                ["shortcutShow", t("显示主窗口", "Show main window"), t("从任何软件快速唤起紫竹轻图", "Open ZizhuQingTu from any application")],
                 ["shortcutPaste", t("压缩剪贴板图片", "Optimise clipboard image"), t("不启用剪贴板监听也能立即压缩当前图片，并在悬浮窗显示结果", "Optimise the current image and show the result without enabling clipboard monitoring")],
                 ["shortcutDock", t("打开 / 关闭悬浮窗", "Toggle floating window"), t("用同一快捷键显示或隐藏图片优化悬浮窗", "Use the same shortcut to show or hide the floating optimiser")],
                 ["shortcutGallery", t("打开图库", "Open library"), t("直接打开本地压缩结果图库", "Open the local result library")],
@@ -4511,11 +4450,10 @@ function PicLiteWorkbench({ nativeBridge, initialView = "workspace", standaloneP
             </section>}
 
             {preferenceSection === "about" && <section className="preference-card about-card">
-              <div className="preference-card-heading"><span>{t("关于 PicLite", "About PicLite")}</span><small>{t("版本与运行环境", "Version and runtime")}</small></div>
-              <div className="about-product"><span className="brand-mark" aria-hidden="true"><i /><i /><i /><i /></span><div><strong>PicLite 图轻 · v{APP_VERSION}</strong><small>{t(`更新日期 ${APP_RELEASE_DATE}`, `Updated ${APP_RELEASE_DATE}`)} · Tauri 2 + Rust</small></div><em>OPEN SOURCE</em></div>
-              <p>{t("图片在本机处理，不上传到 PicLite 服务器。桌面端使用系统 WebView，因此安装包不携带完整浏览器内核。", "Images are processed locally and are never uploaded to PicLite. The desktop app uses the system WebView instead of bundling a browser engine.")}</p>
-              <p className="license-note">{t("PicLite 以 GPL-3.0-or-later 开源；自动化工作流参考 FuzzyIdeas 的 Clop，PicLite 保留独立品牌和跨平台实现。", "PicLite is open source under GPL-3.0-or-later. Its automation workflow is inspired by FuzzyIdeas' Clop while retaining independent branding and a cross-platform implementation.")}</p>
-              <div className="about-links"><button type="button" onClick={() => openReleasePage("https://github.com/amiaoapp/PicLite")}>{t("GitHub 项目", "GitHub project")}</button><button type="button" onClick={() => openReleasePage("https://github.com/amiaoapp/PicLite/blob/main/LICENSE")}>{t("GPLv3 许可", "GPLv3 license")}</button><button type="button" onClick={() => showToast(`PicLite ${APP_VERSION} · Tauri 2 + Rust`)}>{t("版本信息", "Version information")}</button><button type="button" disabled={checkingUpdate} onClick={() => void checkForUpdates(true)}>{checkingUpdate ? t("检查中…", "Checking…") : updateInfo?.available ? t(`更新到 ${updateInfo.latestVersion}`, `Update to ${updateInfo.latestVersion}`) : t("检查更新", "Check for updates")}</button></div>
+              <div className="preference-card-heading"><span>{t("关于紫竹轻图", "About ZizhuQingTu")}</span><small>{t("版本与运行环境", "Version and runtime")}</small></div>
+              <div className="about-product"><span className="brand-mark" aria-hidden="true"><i /><i /><i /><i /></span><div><strong>紫竹轻图 · v{APP_VERSION}</strong><small>{t(`更新日期 ${APP_RELEASE_DATE}`, `Updated ${APP_RELEASE_DATE}`)} · Tauri 2 + Rust</small></div><em>OPEN SOURCE</em></div>
+              <p>{t("图片在本机处理，不上传到紫竹轻图服务器。桌面端使用系统 WebView，因此安装包不携带完整浏览器内核。", "Images are processed locally and are never uploaded to ZizhuQingTu. The desktop app uses the system WebView instead of bundling a browser engine.")}</p>
+              <p className="license-note">{t("紫竹轻图以 GPL-3.0-or-later 开源，基于 PicLite 修改；自动化工作流参考 FuzzyIdeas 的 Clop。", "ZizhuQingTu is open source under GPL-3.0-or-later, based on PicLite. Its automation workflow is inspired by FuzzyIdeas' Clop.")}</p>
             </section>}
           </div>
         </section>

@@ -1,13 +1,13 @@
-# PicLite plugin development
+# ZizhuQingTu plugin development
 
-Workbench plugins suit cover generators, annotators, colour tools, and other client-side image workflows. PicLite no longer uses an `iframe`: the desktop app fetches page source, resolves relative assets, and runs it in a trusted workbench runtime.
+Workbench plugins suit cover generators, annotators, colour tools, and other client-side image workflows. ZizhuQingTu no longer uses an `iframe`: the desktop app fetches page source, resolves relative assets, and runs it in a trusted workbench runtime.
 
 ## Installation methods
 
 Open Settings → Plugins and choose one of these options:
 
 - Import `.html`: recommended; a single file containing page, styles, and scripts is the most reliable package.
-- Import `.js`: PicLite creates a `#piclite-plugin-root` container automatically.
+- Import `.js`: ZizhuQingTu creates a `#piclite-plugin-root` container automatically.
 - Import `manifest.json`: declare English/Chinese names and inline HTML, script, or URL.
 - Add a web plugin: enter a custom name and HTTP(S) URL. The desktop app fetches and mounts it without relying on `X-Frame-Options`.
 
@@ -74,6 +74,6 @@ window.PicLitePlugin = {
 
 ## Security and publishing
 
-A non-iframe plugin can execute page scripts, so it is trusted code rather than a security sandbox. Do not install untrusted code or embed secrets. PicLite image-host credentials are not exposed through the public runtime API.
+A non-iframe plugin can execute page scripts, so it is trusted code rather than a security sandbox. Do not install untrusted code or embed secrets. ZizhuQingTu image-host credentials are not exposed through the public runtime API.
 
 Before publishing, test light and dark themes, narrow windows, offline messaging, and error states. Document the plugin's licence, network access, and data handling in its repository.

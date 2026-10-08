@@ -12,11 +12,11 @@ async function render() {
   );
 }
 
-test("renders the PicLite product shell", async () => {
+test("renders the ZizhuQingTu product shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /<title>PicLite 图轻/);
+  assert.match(html, /<title>紫竹轻图/);
   assert.match(html, /压缩工作台/);
   assert.doesNotMatch(html, />文件夹监测</);
   assert.doesNotMatch(html, />批量重命名</);

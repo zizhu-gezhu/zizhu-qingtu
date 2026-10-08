@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   root: "desktop",
-  base: "/PicLite/",
+  base: "/zizhu-qingtu/",
   publicDir: "../public",
   plugins: [react()],
   build: {

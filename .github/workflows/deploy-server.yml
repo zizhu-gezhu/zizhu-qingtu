@@ -16,7 +16,7 @@ jobs:
           printf '%s\n' "$SERVER_SSH_KEY" > ~/.ssh/id_ed25519
           printf '%s\n' "$SERVER_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
-      - name: Pull and restart PicLite
+      - name: Pull and restart ZizhuQingTu
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}

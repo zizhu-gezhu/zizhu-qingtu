@@ -18,12 +18,12 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=3456
 
-RUN groupadd --system piclite \
-    && useradd --system --gid piclite --home-dir /app piclite
+RUN groupadd --system zizhu-qingtu \
+    && useradd --system --gid zizhu-qingtu --home-dir /app zizhu-qingtu
 
-COPY --from=builder --chown=piclite:piclite /app/dist/standalone ./
+COPY --from=builder --chown=zizhu-qingtu:zizhu-qingtu /app/dist/standalone ./
 
-USER piclite
+USER zizhu-qingtu
 EXPOSE 3456
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

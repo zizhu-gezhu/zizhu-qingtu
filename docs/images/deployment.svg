@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
-  <title id="title">PicLite 服务器部署结构</title>
-  <desc id="desc">浏览器通过 HTTPS 连接 Nginx，Nginx 反向代理到运行 PicLite 的 Docker 容器，图片始终在浏览器本地处理。</desc>
+  <title id="title">紫竹轻图 服务器部署结构</title>
+  <desc id="desc">浏览器通过 HTTPS 连接 Nginx，Nginx 反向代理到运行 紫竹轻图 的 Docker 容器，图片始终在浏览器本地处理。</desc>
   <defs>
     <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0" stop-color="#f7fbff"/>
@@ -18,7 +18,7 @@
     </marker>
   </defs>
   <rect width="1200" height="420" rx="30" fill="url(#bg)"/>
-  <text x="60" y="64" font-family="system-ui, sans-serif" font-size="26" font-weight="700" fill="#18233a">PicLite 自托管结构</text>
+  <text x="60" y="64" font-family="system-ui, sans-serif" font-size="26" font-weight="700" fill="#18233a">紫竹轻图 自托管结构</text>
   <text x="60" y="96" font-family="system-ui, sans-serif" font-size="16" fill="#60708f">界面由服务器提供，图片在用户浏览器本地压缩，不上传原图</text>
 
   <g filter="url(#shadow)">
@@ -38,7 +38,7 @@
     <circle cx="926" cy="200" r="27" fill="#edf2ff"/>
     <rect x="911" y="185" width="30" height="30" rx="6" fill="none" stroke="#4169e1" stroke-width="4"/>
     <path d="M917 193h18m-18 7h18m-18 7h12" stroke="#4169e1" stroke-width="3" stroke-linecap="round"/>
-    <text x="908" y="258" font-family="system-ui, sans-serif" font-size="23" font-weight="700" fill="#18233a">PicLite 容器</text>
+    <text x="908" y="258" font-family="system-ui, sans-serif" font-size="23" font-weight="700" fill="#18233a">紫竹轻图 容器</text>
     <text x="908" y="287" font-family="system-ui, sans-serif" font-size="15" fill="#60708f">Node.js · 127.0.0.1:3000</text>
   </g>
 

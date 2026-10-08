@@ -174,7 +174,6 @@ if ("__TAURI_INTERNALS__" in window) {
     setContentProtected: (protected_) => currentWindow.setContentProtected(protected_),
     hideCurrentWindow: () => invoke("hide_current_window"),
     quitApplication: () => invoke("quit_application"),
-    checkForUpdates: () => invoke("check_for_updates"),
     fetchPluginSource: (url) => invoke("fetch_plugin_source", { url }),
     openExternal: (url) => invoke("open_external_url", { url }),
     onFileDrop: (callback) => {
@@ -349,7 +348,6 @@ if ("__TAURI_INTERNALS__" in window) {
     setContentProtected: noop,
     hideCurrentWindow: noop,
     quitApplication: noop,
-    checkForUpdates: async () => ({ currentVersion: packageManifest.version, latestVersion: packageManifest.version, available: false, releaseUrl: "" }),
     fetchPluginSource: async (url) => {
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

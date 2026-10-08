@@ -20,12 +20,17 @@ jobs:
             os: windows-latest
             target: x86_64-pc-windows-msvc
             bundles: nsis,msi
-            artifact: PicLite-Windows-x64-preview
+            artifact: ZizhuQingTu-Windows-x64-preview
           - name: macOS Intel preview
             os: macos-15-intel
             target: x86_64-apple-darwin
             bundles: dmg
-            artifact: PicLite-macOS-x64-preview
+            artifact: ZizhuQingTu-macOS-x64-preview
+          - name: macOS Apple Silicon preview
+            os: macos-latest
+            target: aarch64-apple-darwin
+            bundles: dmg
+            artifact: ZizhuQingTu-macOS-arm64-preview
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -54,15 +59,15 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $dir = "portable/PicLite-Windows-x64-preview-portable"
+          $dir = "portable/ZizhuQingTu-Windows-x64-preview-portable"
           New-Item -ItemType Directory -Force $dir | Out-Null
-          Copy-Item "src-tauri/target/${{ matrix.target }}/release/piclite.exe" "$dir/PicLite.exe"
-          Set-Content "$dir/portable.txt" "PicLite portable mode"
+          Copy-Item "src-tauri/target/${{ matrix.target }}/release/zizhu-qingtu.exe" "$dir/ZizhuQingTu.exe"
+          Set-Content "$dir/portable.txt" "ZizhuQingTu portable mode"
           Copy-Item "docs/PORTABLE.txt" "$dir/README.txt"
-          Compress-Archive -Path "$dir/*" -DestinationPath "PicLite-Windows-x64-preview-portable.zip"
+          Compress-Archive -Path "$dir/*" -DestinationPath "ZizhuQingTu-Windows-x64-preview-portable.zip"
       - name: Upload Windows portable build
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: PicLite-Windows-x64-preview-portable
-          path: PicLite-Windows-x64-preview-portable.zip
+          name: ZizhuQingTu-Windows-x64-preview-portable
+          path: ZizhuQingTu-Windows-x64-preview-portable.zip

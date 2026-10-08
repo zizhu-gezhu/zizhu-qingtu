@@ -1,14 +1,14 @@
 services:
-  piclite:
-    image: ghcr.io/amiaoapp/piclite:${PICLITE_TAG:-latest}
-    container_name: piclite
+  zizhu-qingtu:
+    image: ghcr.io/zizhu-gezhu/zizhu-qingtu:${ZIZHU_QINGTU_TAG:-latest}
+    container_name: zizhu-qingtu
     restart: unless-stopped
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 3456
     ports:
-      - "${PICLITE_BIND:-0.0.0.0}:${PICLITE_PORT:-3456}:3456"
+      - "${ZIZHU_QINGTU_BIND:-0.0.0.0}:${ZIZHU_QINGTU_PORT:-3456}:3456"
     healthcheck:
       test:
         - CMD

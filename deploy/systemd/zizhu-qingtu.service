@@ -1,12 +1,12 @@
 [Unit]
-Description=PicLite web application
+Description=ZizhuQingTu web application
 After=network.target
 
 [Service]
 Type=simple
-User=piclite
-Group=piclite
-WorkingDirectory=/opt/piclite/dist/standalone
+User=zizhu-qingtu
+Group=zizhu-qingtu
+WorkingDirectory=/opt/zizhu-qingtu/dist/standalone
 Environment=NODE_ENV=production
 Environment=HOST=127.0.0.1
 Environment=PORT=3000
